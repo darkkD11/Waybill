@@ -1,0 +1,493 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-glow: rgba(79, 70, 229, 0.15);
+  
+  --sidebar-bg: #0f172a;
+  --sidebar-hover: #1e293b;
+  --sidebar-active: rgba(79, 70, 229, 0.2);
+  
+  --bilty-primary: #1e3a8a;
+  --bilty-border: #000000;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print Copies Container - Hidden on Screen */
+.print-copies-container {
+  display: none;
+}
+
+/* live preview container styling on screen */
+.bilty-sheet {
+  background-color: white;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #cbd5e1;
+  color: #000;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0 auto;
+}
+
+.bilty-border-box {
+  border: 2px solid var(--bilty-border);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bilty-header {
+  border-bottom: 2px solid var(--bilty-border);
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+}
+
+.header-left-logo {
+  font-size: 28px;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.header-center-title {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.company-name {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #000;
+}
+
+.company-subtitle {
+  font-size: 9.5px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.header-right-meta {
+  text-align: right;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.copy-tag {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: 1px dashed var(--bilty-border);
+  padding: 2px 6px;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+/* Office address bar */
+.office-info-bar {
+  border-bottom: 1.5px solid var(--bilty-border);
+  display: grid;
+  grid-template-columns: 55% 45%;
+  background-color: #f8fafc;
+  font-size: 9.5px;
+}
+
+.office-block {
+  padding: 5px 8px;
+}
+
+.office-block:first-child {
+  border-right: 1.5px solid var(--bilty-border);
+}
+
+/* Meta info grid (Bilty No, Date, Booking Point) */
+.meta-info-grid {
+  border-bottom: 1.5px solid var(--bilty-border);
+  display: grid;
+  grid-template-columns: 35% 30% 35%;
+  font-size: 11px;
+}
+
+.meta-cell {
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+}
+
+.meta-cell:not(:last-child) {
+  border-right: 1.5px solid var(--bilty-border);
+}
+
+.meta-label {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.meta-value {
+  font-weight: bold;
+}
+
+/* Transport details (Truck No, Routes, Driver) */
+.transport-grid {
+  border-bottom: 1.5px solid var(--bilty-border);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  font-size: 11px;
+}
+
+.transport-cell {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--bilty-border);
+}
+
+.transport-cell:not(:nth-child(3n)) {
+  border-right: 1.5px solid var(--bilty-border);
+}
+
+.transport-cell.full-width {
+  grid-column: span 3;
+  border-bottom: none;
+}
+
+/* Consigner / Consignee details */
+.party-section {
+  border-bottom: 2px solid var(--bilty-border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-size: 11px;
+}
+
+.party-box {
+  padding: 8px 10px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+.party-box:first-child {
+  border-right: 2px solid var(--bilty-border);
+}
+
+.party-title {
+  font-weight: bold;
+  text-decoration: underline;
+  margin-bottom: 4px;
+}
+
+.party-name {
+  font-weight: bold;
+  flex-grow: 1;
+  white-space: pre-wrap;
+}
+
+.party-gst {
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+/* Goods Table */
+.goods-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  flex-grow: 1;
+  table-layout: fixed;
+}
+
+.goods-table th {
+  border-bottom: 2px solid var(--bilty-border);
+  padding: 6px;
+  text-align: center;
+  font-weight: bold;
+  background-color: #f8fafc;
+}
+
+.goods-table th:not(:last-child),
+.goods-table td:not(:last-child) {
+  border-right: 1.5px solid var(--bilty-border);
+}
+
+.goods-table td {
+  padding: 6px;
+  vertical-align: top;
+  min-height: 24px;
+  word-wrap: break-word;
+}
+
+.goods-table tr.data-row {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.goods-table tr.data-row:last-child {
+  border-bottom: 2px solid var(--bilty-border);
+}
+
+.col-center {
+  text-align: center;
+}
+
+.col-right {
+  text-align: right;
+  font-family: monospace;
+}
+
+/* Summary Financial block */
+.summary-section {
+  border-top: 2px solid var(--bilty-border);
+  display: grid;
+  grid-template-columns: 55% 45%;
+  min-height: 160px;
+  font-size: 11px;
+}
+
+.terms-jurisdiction {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 2px solid var(--bilty-border);
+}
+
+.terms-list {
+  padding-left: 15px;
+  margin: 0;
+  list-style-type: square;
+}
+
+.terms-list li {
+  margin-bottom: 3px;
+  font-size: 9.5px;
+}
+
+.finance-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.finance-row {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  border-bottom: 1.5px solid var(--bilty-border);
+  font-weight: bold;
+}
+
+.finance-label {
+  padding: 4px 8px;
+  border-right: 1.5px solid var(--bilty-border);
+  background-color: #f8fafc;
+}
+
+.finance-value {
+  padding: 4px 8px;
+  text-align: right;
+  font-family: monospace;
+}
+
+.signature-area {
+  padding: 8px 10px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-grow: 1;
+  min-height: 80px;
+}
+
+.sig-company {
+  font-weight: bold;
+  font-size: 10px;
+}
+
+.sig-line {
+  font-weight: bold;
+  font-size: 10px;
+  border-top: 1px dashed var(--bilty-border);
+  padding-top: 4px;
+  width: 140px;
+  text-align: center;
+  margin-top: 30px;
+}
+
+/* Carbon Copy Borders */
+.bilty-sheet.copy-white {
+  border-top: 8px solid #94a3b8;
+}
+
+.bilty-sheet.copy-pink {
+  border-top: 8px solid #ec4899;
+}
+
+.bilty-sheet.copy-yellow {
+  border-top: 8px solid #eab308;
+}
+
+.bilty-sheet.copy-green {
+  border-top: 8px solid #22c55e;
+}
+
+/* Custom CSS helper utilities */
+.vehicle-type-btn {
+  @apply py-2 px-4 font-semibold text-sm rounded-lg transition-all cursor-pointer;
+}
+
+.vehicle-type-btn.active {
+  @apply bg-indigo-600 text-white shadow-md;
+}
+
+.vehicle-type-btn.inactive {
+  @apply bg-slate-100 text-slate-600 hover:bg-slate-200;
+}
+
+/* ===== PRINT OVERRIDES ===== */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide screen dashboard panels */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Force preview panel to expand and act as root print container */
+  .preview-panel-root {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    background-color: white !important;
+    display: block !important;
+  }
+
+  /* Hide the screen preview element, only print the color-coded copies */
+  .preview-panel-root > .screen-only-bilty {
+    display: none !important;
+  }
+
+  /* Display the print-only wrapper */
+  .print-copies-container {
+    display: block !important;
+  }
+
+  /* Layout each sheet on a separate page during printing */
+  .print-copies-container .bilty-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 186mm !important; /* adjust for A4 printable width with 12mm page margin */
+    min-height: 273mm !important; /* adjust for A4 page height minus 24mm margin */
+    border-radius: 0 !important;
+    page-break-after: always;
+  }
+
+  .print-copies-container .bilty-sheet:last-child {
+    page-break-after: avoid !important;
+  }
+
+  .office-info-bar {
+    background-color: transparent !important;
+  }
+
+  .goods-table th {
+    background-color: transparent !important;
+  }
+
+  .finance-label {
+    background-color: transparent !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
+
+/* ===== LIVE PREVIEW CENTERING AND SIZING ===== */
+.bilty-preview-wrapper {
+  --sheet-scale: 0.65;
+  width: calc(210mm * var(--sheet-scale));
+  height: calc(297mm * var(--sheet-scale));
+  position: relative;
+  margin: 0 auto;
+  overflow: visible;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .bilty-preview-wrapper {
+    --sheet-scale: 0.65;
+  }
+}
+@media (min-width: 768px) {
+  .bilty-preview-wrapper {
+    --sheet-scale: 0.75;
+  }
+}
+@media (min-width: 1280px) {
+  .bilty-preview-wrapper {
+    --sheet-scale: 0.58;
+  }
+}
+@media (min-width: 1536px) {
+  .bilty-preview-wrapper {
+    --sheet-scale: 0.65;
+  }
+}
+
+.bilty-preview-wrapper > .screen-only-bilty {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: scale(var(--sheet-scale)) !important;
+  transform-origin: top left !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+

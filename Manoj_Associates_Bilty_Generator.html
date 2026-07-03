@@ -1,0 +1,3892 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manoj Associates - Bilty Generator App</title>
+    <meta name="description"
+        content="Manoj Associates Bilty Generator - Transport Contractor & Commission Agent billing application with Excel export">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.25);
+            --accent: #22d3ee;
+            --accent-glow: rgba(34, 211, 238, 0.2);
+            --success: #10b981;
+            --success-dark: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --sidebar-active: rgba(99, 102, 241, 0.15);
+            --panel-bg: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(148, 163, 184, 0.25);
+            --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-focus: var(--primary);
+            --border-color: #cbd5e1;
+            --bilty-primary: #1e3a8a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--panel-bg);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ===== SIDEBAR NAVIGATION ===== */
+        .sidebar {
+            width: 72px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0;
+            gap: 4px;
+            z-index: 100;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .sidebar-tab {
+            width: 52px;
+            height: 52px;
+            border: none;
+            background: transparent;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .sidebar-tab svg {
+            width: 22px;
+            height: 22px;
+            transition: all 0.25s;
+        }
+
+        .sidebar-tab span {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.25s;
+        }
+
+        .sidebar-tab:hover {
+            background: var(--sidebar-hover);
+            color: #e2e8f0;
+        }
+
+        .sidebar-tab.active {
+            background: var(--sidebar-active);
+            color: var(--primary);
+        }
+
+        .sidebar-tab.active::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .sidebar-spacer {
+            flex-grow: 1;
+        }
+
+        /* ===== APP LAYOUT ===== */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ===== LEFT FORM PANEL ===== */
+        .form-panel {
+            width: 60%;
+            background: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            border-right: 1px solid var(--card-border);
+        }
+
+        .form-header {
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .form-header .tab-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-header .tab-title svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.8;
+        }
+
+        .header-badge {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Tab Content Containers */
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .form-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* ===== FORM CARDS (Glassmorphism) ===== */
+        .form-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--card-shadow);
+            transition: box-shadow 0.3s;
+        }
+
+        .form-section:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-section h2 {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section h2::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 9px 12px;
+            border: 1.5px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.25s;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        input[readonly] {
+            background: #e2e8f0;
+            cursor: default;
+        }
+
+        /* ===== GOODS TABLE INPUTS ===== */
+        .table-row-inputs {
+            display: grid;
+            grid-template-columns: 0.5fr 1.8fr 0.8fr 0.8fr 0.8fr 1fr;
+            gap: 4px;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .table-row-inputs input {
+            padding: 5px 6px;
+            font-size: 0.78rem;
+            border-radius: 6px;
+            min-width: 0;
+            width: 100%;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--success), var(--success-dark));
+            color: white;
+            flex-grow: 1;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #334155;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-accent:hover {
+            box-shadow: 0 6px 20px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--input-border);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            border-radius: 7px;
+        }
+
+        /* ===== FORM FOOTER ===== */
+        .form-footer {
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ===== COPY SELECT IN HEADER ===== */
+        .copy-select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.8rem;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .copy-select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        /* ===== CLIENT DROPDOWN WITH SEARCH ===== */
+        .client-select-wrapper {
+            position: relative;
+        }
+
+        .client-select-wrapper select {
+            width: 100%;
+        }
+
+        /* ===== CLIENTS TAB ===== */
+        .client-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .client-table-wrapper {
+            overflow-y: auto;
+            max-height: calc(100vh - 400px);
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .data-table th {
+            background: #1e293b;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .data-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--card-border);
+            vertical-align: middle;
+        }
+
+        .data-table tr {
+            transition: background 0.15s;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .data-table .actions-cell {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .icon-btn.edit {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .icon-btn.edit:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .icon-btn.delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .icon-btn.delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .icon-btn.view {
+            background: rgba(34, 211, 238, 0.1);
+            color: #0891b2;
+        }
+
+        .icon-btn.view:hover {
+            background: #0891b2;
+            color: white;
+        }
+
+        /* ===== HISTORY TAB ===== */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-bar input {
+            flex-grow: 1;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* ===== EXPORT TAB ===== */
+        .export-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .export-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .export-card .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 14px;
+        }
+
+        .export-card .icon-circle.download {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+            color: var(--success);
+        }
+
+        .export-card .icon-circle.upload {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+            color: var(--primary);
+        }
+
+        .export-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .export-card p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        /* ===== TOAST NOTIFICATION ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e293b;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 18px;
+            padding: 28px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-box h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .modal-box p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 0.82rem;
+        }
+
+        /* ===== RIGHT PREVIEW PANEL ===== */
+        .preview-panel {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #e2e8f0;
+        }
+
+        /* ===== BILTY SHEET (Print Design — Preserved) ===== */
+        .bilty-sheet {
+            background-color: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12);
+            border: 1px solid #94a3b8;
+            color: #000;
+            font-family: 'Arial', sans-serif;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px;
+        }
+
+        .bilty-border-box {
+            border: 2px solid #000;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bilty-header {
+            border-bottom: 2px solid #000;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .header-left-logo {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header-center-title {
+            text-align: center;
+            flex-grow: 1;
+            padding: 0 10px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: #000;
+        }
+
+        .company-subtitle {
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-right-meta {
+            text-align: right;
+            font-size: 11px;
+            font-weight: bold;
+            min-width: 150px;
+        }
+
+        .office-info-bar {
+            border-bottom: 1px solid #000;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-size: 10px;
+            line-height: 1.3;
+            background-color: #f8fafc;
+        }
+
+        .office-block {
+            padding: 6px 10px;
+        }
+
+        .office-block:first-child {
+            border-right: 1px solid #000;
+        }
+
+        .meta-info-grid {
+            border-bottom: 1px solid #000;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .meta-cell {
+            padding: 8px 10px;
+            border-right: 1px solid #000;
+            display: flex;
+            align-items: center;
+        }
+
+        .meta-cell:last-child {
+            border-right: none;
+        }
+
+        .meta-label {
+            margin-right: 5px;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .meta-value {
+            font-weight: normal;
+            border-bottom: 1px dashed #666;
+            flex-grow: 1;
+            min-height: 16px;
+            padding-left: 4px;
+        }
+
+        .transport-grid {
+            border-bottom: 1px solid #000;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            font-size: 12px;
+        }
+
+        .transport-cell {
+            padding: 6px 10px;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+
+        .transport-cell:nth-child(3),
+        .transport-cell:nth-child(5) {
+            border-right: none;
+        }
+
+        .party-section {
+            border-bottom: 1px solid #000;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            font-size: 12px;
+        }
+
+        .party-box {
+            padding: 8px 10px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .party-box:first-child {
+            border-right: 1px solid #000;
+        }
+
+        .party-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            margin-bottom: 4px;
+            text-decoration: underline;
+        }
+
+        .party-name {
+            font-weight: normal;
+            margin-bottom: auto;
+            min-height: 35px;
+            font-size: 13px;
+        }
+
+        .party-gst {
+            font-weight: bold;
+            font-size: 11px;
+            margin-top: 4px;
+            display: flex;
+        }
+
+        .goods-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex-grow: 1;
+            font-size: 12px;
+        }
+
+        .goods-table th {
+            border-bottom: 2px solid #000;
+            border-right: 1px solid #000;
+            padding: 6px;
+            background-color: #f1f5f9;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .goods-table th:last-child {
+            border-right: none;
+        }
+
+        .goods-table td {
+            border-right: 1px solid #000;
+            padding: 6px 8px;
+            vertical-align: top;
+            height: 28px;
+        }
+
+        .goods-table td:last-child {
+            border-right: none;
+        }
+
+        .goods-table tr.data-row td {
+            font-weight: normal;
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .col-right {
+            text-align: right;
+        }
+
+        .col-left {
+            text-align: left;
+        }
+
+        .summary-section {
+            border-top: 2px solid #000;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            font-size: 12px;
+        }
+
+        .terms-jurisdiction {
+            padding: 10px;
+            border-right: 1px solid #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .terms-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .terms-list li {
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .terms-list li::before {
+            content: "●";
+            position: absolute;
+            left: 0;
+            color: #000;
+        }
+
+        .copy-indicator-badge {
+            margin-top: 15px;
+            display: inline-block;
+            padding: 4px 8px;
+            border: 1px solid #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            background-color: #fff;
+        }
+
+        .finance-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .finance-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .finance-label {
+            padding: 6px 10px;
+            border-right: 1px solid #000;
+            background-color: #f8fafc;
+        }
+
+        .finance-value {
+            padding: 6px 10px;
+            text-align: right;
+        }
+
+        .signature-area {
+            padding: 10px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+            min-height: 85px;
+            background-color: #fff;
+        }
+
+        .sig-company {
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .sig-line {
+            font-weight: bold;
+            font-size: 11px;
+            border-top: 1px dashed #000;
+            padding-top: 4px;
+            width: 140px;
+            text-align: center;
+        }
+
+        /* Carbon Copy Colors */
+        .bilty-sheet.copy-white {
+            border-top: 8px solid #cbd5e1;
+        }
+
+        .bilty-sheet.copy-pink {
+            border-top: 8px solid #f472b6;
+        }
+
+        .bilty-sheet.copy-yellow {
+            border-top: 8px solid #facc15;
+        }
+
+        .bilty-sheet.copy-green {
+            border-top: 8px solid #4ade80;
+        }
+
+        .copy-tag {
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px dashed #000;
+            padding: 2px 6px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body {
+                background-color: white;
+                color: black;
+                overflow: visible;
+                height: auto;
+            }
+
+            .sidebar,
+            .form-panel {
+                display: none !important;
+            }
+
+            .preview-panel {
+                width: 100% !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background-color: white !important;
+                display: block !important;
+                align-items: unset !important;
+                justify-content: unset !important;
+            }
+
+            /* Hide the live preview bilty during print (we use cloned copies) */
+            .preview-panel>.bilty-sheet {
+                display: none !important;
+            }
+
+            /* Show the print copies container */
+            .print-copies-container {
+                display: block !important;
+            }
+
+            .print-copies-container .bilty-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
+                border-radius: 0 !important;
+                page-break-after: always;
+                border-top: none !important;
+            }
+
+            .print-copies-container .bilty-sheet:last-child {
+                page-break-after: auto;
+            }
+
+            .office-info-bar {
+                background-color: transparent !important;
+            }
+
+            .goods-table th {
+                background-color: transparent !important;
+            }
+
+            .finance-label {
+                background-color: transparent !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
+        }
+
+        /* Hide print copies container on screen */
+        .print-copies-container {
+            display: none;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ===== HIDDEN FILE INPUT ===== */
+        .hidden-input {
+            display: none;
+        }
+
+        /* ===== COLLAPSIBLE FORM SECTIONS ===== */
+        .form-section.collapsible .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-section.collapsible .section-header h2 {
+            margin-bottom: 0;
+        }
+
+        .form-section.collapsible .collapse-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .form-section.collapsible.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .form-section.collapsible .section-body {
+            max-height: 600px;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s, margin-top 0.25s;
+            opacity: 1;
+            margin-top: 14px;
+        }
+
+        .form-section.collapsible.collapsed .section-body {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        /* ===== VEHICLE TYPE TOGGLE ===== */
+        .vehicle-type-toggle {
+            display: flex;
+            gap: 0;
+            background: #e2e8f0;
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 14px;
+        }
+
+        .vehicle-type-toggle button {
+            flex: 1;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .vehicle-type-toggle button.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .vehicle-type-toggle button:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .conditional-section {
+            display: none;
+            animation: fadeSlideIn 0.3s ease;
+        }
+
+        .conditional-section.visible {
+            display: block;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== DATALIST / AUTOCOMPLETE STYLING ===== */
+        .autofill-input-wrapper {
+            position: relative;
+        }
+
+        .autofill-input-wrapper input {
+            width: 100%;
+        }
+
+        .auto-badge {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(34, 211, 238, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== REGISTER TAB ===== */
+        .register-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .register-controls select,
+        .register-controls input {
+            padding: 8px 12px;
+            font-size: 0.82rem;
+        }
+
+        .register-table-wrapper {
+            overflow: auto;
+            max-height: calc(100vh - 300px);
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+        }
+
+        .register-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+        }
+
+        .register-table th {
+            background: #1e293b;
+            color: white;
+            padding: 8px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .register-table th.group-self {
+            background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        }
+
+        .register-table th.group-outside {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        .register-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--card-border);
+            border-right: 1px solid var(--card-border);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .register-table td.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .register-table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .register-table tfoot td {
+            background: #f1f5f9;
+            font-weight: 700;
+            border-top: 2px solid #334155;
+        }
+
+        /* ===== CALCULATED FIELD HIGHLIGHT ===== */
+        input.auto-calculated {
+            background: #f0fdf4 !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+            color: var(--success-dark);
+            font-weight: 600;
+        }
+
+        /* ===== IMPORT DISPATCH REGISTER SECTION ===== */
+        .import-dispatch-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(245, 158, 11, 0.02));
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .import-dispatch-card .icon-circle {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05)) !important;
+            color: var(--warning) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <nav class="sidebar" id="sidebar-nav">
+        <div class="sidebar-logo">🚚</div>
+
+        <button class="sidebar-tab active" onclick="switchTab('bilty')" id="tab-btn-bilty" title="New Bilty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+            </svg>
+            <span>Bilty</span>
+        </button>
+
+        <button class="sidebar-tab" onclick="switchTab('clients')" id="tab-btn-clients" title="Client Database">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span>Clients</span>
+        </button>
+
+        <button class="sidebar-tab" onclick="switchTab('history')" id="tab-btn-history" title="Bill History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>History</span>
+        </button>
+
+        <button class="sidebar-tab" onclick="switchTab('register')" id="tab-btn-register" title="Dispatch Register">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+                <line x1="3" y1="15" x2="21" y2="15" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+            </svg>
+            <span>Register</span>
+        </button>
+
+        <button class="sidebar-tab" onclick="switchTab('export')" id="tab-btn-export" title="Export / Import">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Export</span>
+        </button>
+
+        <div class="sidebar-spacer"></div>
+    </nav>
+
+    <div class="app-container">
+        <!-- LEFT: FORM PANEL -->
+        <div class="form-panel">
+
+            <!-- ========== TAB: NEW BILTY ========== -->
+            <div class="tab-content active" id="tab-bilty">
+                <div class="form-header">
+                    <div class="tab-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        <h1>New Bilty</h1>
+                    </div>
+                    <select class="copy-select" id="input_copy_type" onchange="updatePreview()">
+                        <option value="white">White - Consignor Copy</option>
+                        <option value="pink">Pink - Consignee Copy</option>
+                        <option value="yellow">Yellow - Driver Copy</option>
+                        <option value="green">Green - Counter Copy</option>
+                    </select>
+                </div>
+
+                <div class="form-body">
+                    <!-- Document Info -->
+                    <div class="form-section">
+                        <h2>Document Info</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Bilty No.</label>
+                                <input type="text" id="input_bilty_no" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="input_date" onchange="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Datalists for Autocomplete -->
+                    <datalist id="dl_truck_nos"></datalist>
+                    <datalist id="dl_driver_names"></datalist>
+                    <datalist id="dl_from_stations"></datalist>
+                    <datalist id="dl_to_stations"></datalist>
+                    <datalist id="dl_transporters"></datalist>
+                    <datalist id="dl_party_dos"></datalist>
+                    <datalist id="dl_party_names"></datalist>
+                    <datalist id="dl_materials"></datalist>
+                    <datalist id="dl_unload_units"></datalist>
+
+                    <!-- Dispatch Details (NEW) -->
+                    <div class="form-section">
+                        <h2>Dispatch Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Party DO No.</label>
+                                <input type="text" id="input_party_do" placeholder="e.g. 2310303399" list="dl_party_dos"
+                                    oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Transporter</label>
+                                <input type="text" id="input_transporter" placeholder="e.g. Manoj Associates"
+                                    list="dl_transporters" oninput="onTransporterChange(); updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Material</label>
+                                <input type="text" id="input_material" value="Ncoal" list="dl_materials"
+                                    oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Quality</label>
+                                <input type="number" id="input_quality" value="4200" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Party (Short Name)</label>
+                                <input type="text" id="input_party_short" placeholder="e.g. MA, Waheguru"
+                                    list="dl_party_names" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Unload Unit</label>
+                                <input type="text" id="input_unload_unit" placeholder="e.g. N-198, G-61"
+                                    list="dl_unload_units" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle & Route (Enhanced with autocomplete) -->
+                    <div class="form-section">
+                        <h2>Vehicle & Route Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Truck No.</label>
+                                <input type="text" id="input_truck_no" placeholder="e.g. MH48CB4566" list="dl_truck_nos"
+                                    oninput="onTruckChange(); updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Driver Name</label>
+                                <input type="text" id="input_driver_name" placeholder="Driver Name"
+                                    list="dl_driver_names" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>From Station</label>
+                                <input type="text" id="input_from" value="Hazira" list="dl_from_stations"
+                                    oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>To Station</label>
+                                <input type="text" id="input_to" placeholder="Destination City" list="dl_to_stations"
+                                    oninput="onRouteChange(); updatePreview()">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Driver Mobile No.</label>
+                                <input type="text" id="input_driver_mob" placeholder="Mobile Number"
+                                    oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Party Details with Client Quick-Select -->
+                    <div class="form-section">
+                        <h2>Party Details</h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Quick Select Consigner</label>
+                                <select id="select_consigner" onchange="fillConsigner()">
+                                    <option value="">-- Type manually or select client --</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width" style="margin-bottom: 4px;">
+                                <label>Consigner M/s.</label>
+                                <input type="text" id="input_consigner" placeholder="Sender Name & Address"
+                                    oninput="updatePreview()">
+                            </div>
+                            <div class="form-group full-width" style="margin-bottom: 12px;">
+                                <label>Consigner GST No.</label>
+                                <input type="text" id="input_consigner_gst" placeholder="27XXXXX..."
+                                    oninput="updatePreview()">
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>Quick Select Consignee</label>
+                                <select id="select_consignee" onchange="fillConsignee()">
+                                    <option value="">-- Type manually or select client --</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Consignee M/s.</label>
+                                <input type="text" id="input_consignee" placeholder="Receiver Name & Address"
+                                    oninput="updatePreview()">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Consignee GST No.</label>
+                                <input type="text" id="input_consignee_gst" placeholder="24XXXXX..."
+                                    oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weight & Shortage Details (NEW) -->
+                    <div class="form-section collapsible">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h2>Weight & Shortage Details</h2>
+                            <svg class="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </div>
+                        <div class="section-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Challan Weight (MT)</label>
+                                    <input type="number" id="input_challan_wt" step="0.01" placeholder="0.00"
+                                        onchange="calcWeightDiff(); calcDispatchFreight()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Received Weight (MT)</label>
+                                    <input type="number" id="input_recd_wt" step="0.01" placeholder="0.00"
+                                        onchange="calcWeightDiff(); calcDispatchFreight()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Difference (MT)</label>
+                                    <input type="number" id="input_wt_diff" step="0.01" class="auto-calculated"
+                                        readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Short Quantity</label>
+                                    <input type="number" id="input_short_qty" step="1" placeholder="0"
+                                        onchange="calcDispatchFreight()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goods Table -->
+                    <div class="form-section">
+                        <h2>Goods Description</h2>
+                        <div id="goods_rows_container">
+                            <div class="table-row-inputs">
+                                <input type="text" id="row_no_1" placeholder="No." oninput="updatePreview()">
+                                <input type="text" id="row_desc_1" placeholder="Description of Goods"
+                                    oninput="updatePreview()">
+                                <input type="number" id="row_weight_1" placeholder="Weight" oninput="updatePreview()"
+                                    onchange="calculateFreight(1)">
+                                <input type="number" id="row_rate_1" placeholder="Rate" oninput="updatePreview()"
+                                    onchange="calculateFreight(1)">
+                                <input type="number" id="row_total_1" placeholder="Total" oninput="updatePreview()"
+                                    onchange="calculateTotals()">
+                                <input type="text" id="row_rem_1" placeholder="Remarks" oninput="updatePreview()">
+                            </div>
+                            <div class="table-row-inputs">
+                                <input type="text" id="row_no_2" placeholder="No." oninput="updatePreview()">
+                                <input type="text" id="row_desc_2" placeholder="Description" oninput="updatePreview()">
+                                <input type="number" id="row_weight_2" placeholder="Weight" oninput="updatePreview()"
+                                    onchange="calculateFreight(2)">
+                                <input type="number" id="row_rate_2" placeholder="Rate" oninput="updatePreview()"
+                                    onchange="calculateFreight(2)">
+                                <input type="number" id="row_total_2" placeholder="Total" oninput="updatePreview()"
+                                    onchange="calculateTotals()">
+                                <input type="text" id="row_rem_2" placeholder="Remarks" oninput="updatePreview()">
+                            </div>
+                            <div class="table-row-inputs">
+                                <input type="text" id="row_no_3" placeholder="No." oninput="updatePreview()">
+                                <input type="text" id="row_desc_3" placeholder="Description" oninput="updatePreview()">
+                                <input type="number" id="row_weight_3" placeholder="Weight" oninput="updatePreview()"
+                                    onchange="calculateFreight(3)">
+                                <input type="number" id="row_rate_3" placeholder="Rate" oninput="updatePreview()"
+                                    onchange="calculateFreight(3)">
+                                <input type="number" id="row_total_3" placeholder="Total" oninput="updatePreview()"
+                                    onchange="calculateTotals()">
+                                <input type="text" id="row_rem_3" placeholder="Remarks" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Freight & Summary (for Bilty print) -->
+                    <div class="form-section">
+                        <h2>Freight & Summary Charges</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>To Pay Amount (Rs.)</label>
+                                <input type="number" id="charge_topay" value="0" oninput="updatePreview()"
+                                    onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group">
+                                <label>Hamali Charges (Rs.)</label>
+                                <input type="number" id="charge_hamali" value="0" oninput="updatePreview()"
+                                    onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Freight (Rs.)</label>
+                                <input type="number" id="charge_total" value="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Advance Paid (Rs.)</label>
+                                <input type="number" id="charge_advance" value="0" oninput="updatePreview()"
+                                    onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Balance of Payment (Rs.)</label>
+                                <input type="number" id="charge_balance" value="0" readonly
+                                    style="font-weight: 700; color: var(--primary);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dispatch Register Financials (NEW) -->
+                    <div class="form-section collapsible">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <h2>📊 Dispatch Register — Financials</h2>
+                            <svg class="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </div>
+                        <div class="section-body">
+                            <!-- Vehicle Type Toggle -->
+                            <div class="vehicle-type-toggle">
+                                <button type="button" class="active" onclick="setVehicleType('self', this)">🚛 Self
+                                    Vehicle</button>
+                                <button type="button" onclick="setVehicleType('outside', this)">🤝 Outside
+                                    Party</button>
+                            </div>
+                            <input type="hidden" id="input_vehicle_type" value="self">
+
+                            <div class="form-grid" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label>Rate (per MT)</label>
+                                    <input type="number" id="input_dispatch_rate" step="1" placeholder="e.g. 850"
+                                        onchange="calcDispatchFreight()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Freight (Rs.)</label>
+                                    <input type="number" id="input_dispatch_freight" step="1" class="auto-calculated"
+                                        readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Shortage Amount (Rs.)</label>
+                                    <input type="number" id="input_shortage_amt" step="1" placeholder="0"
+                                        onchange="calcDispatchBalance()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bilty Charge (Rs.)</label>
+                                    <input type="number" id="input_bilty_charge" step="1" placeholder="e.g. 500"
+                                        onchange="calcDispatchBalance()">
+                                </div>
+                            </div>
+
+                            <!-- Self Vehicle Section -->
+                            <div class="conditional-section visible" id="section_self">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>VRE (Rs.)</label>
+                                        <input type="number" id="input_vre" step="1" placeholder="0"
+                                            onchange="calcDispatchBalance()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Paid (Rs.)</label>
+                                        <input type="number" id="input_paid" step="1" placeholder="0"
+                                            onchange="calcDispatchBalance()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fuel Litres</label>
+                                        <input type="number" id="input_fuel_ltr" step="0.01" placeholder="0"
+                                            onchange="calcDieselCost()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Pump</label>
+                                        <input type="text" id="input_pump" placeholder="Pump name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fuel Rate (₹/Ltr)</label>
+                                        <input type="number" id="input_fuel_rate" step="0.01" placeholder="0"
+                                            onchange="calcDieselCost()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Diesel Cost (Rs.)</label>
+                                        <input type="number" id="input_diesel_cost" step="1" class="auto-calculated"
+                                            readonly>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Self Balance (Rs.)</label>
+                                        <input type="number" id="input_self_balance" step="1" class="auto-calculated"
+                                            readonly style="font-weight: 700; font-size: 1rem;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Outside Party Section -->
+                            <div class="conditional-section" id="section_outside">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Bilty / Commission (Rs.)</label>
+                                        <input type="number" id="input_bilty_com" step="1" placeholder="0"
+                                            onchange="calcDispatchBalance()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>VRE Advance (Rs.)</label>
+                                        <input type="number" id="input_vre_adv" step="1" placeholder="0"
+                                            onchange="calcDispatchBalance()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fuel Litres (Outside)</label>
+                                        <input type="number" id="input_out_fuel_ltr" step="0.01" placeholder="0"
+                                            onchange="calcOutDieselCost()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Diesel Cost (Outside)</label>
+                                        <input type="number" id="input_out_diesel" step="1" placeholder="0"
+                                            onchange="calcDispatchBalance()">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Outside Balance (Rs.)</label>
+                                        <input type="number" id="input_out_balance" step="1" class="auto-calculated"
+                                            readonly style="font-weight: 700; font-size: 1rem;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-top: 10px;">
+                                <div class="form-group">
+                                    <label>Advance Received (Rs.)</label>
+                                    <input type="number" id="input_adv_recd" step="1" placeholder="0"
+                                        onchange="calcDispatchBalance()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Actual Balance (Rs.)</label>
+                                    <input type="number" id="input_act_balance" step="1" class="auto-calculated"
+                                        readonly style="font-weight: 800; font-size: 1.1rem; color: var(--primary);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+                    <button class="btn btn-accent" onclick="saveBilty()" style="flex-grow: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                            <polyline points="17 21 17 13 7 13 7 21" />
+                            <polyline points="7 3 7 8 15 8" />
+                        </svg>
+                        Save
+                    </button>
+                    <button class="btn btn-primary" onclick="saveBilty(); printAllCopies();">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2" />
+                            <rect x="6" y="14" width="12" height="8" />
+                        </svg>
+                        Save & Print
+                    </button>
+                </div>
+            </div>
+
+            <!-- ========== TAB: CLIENTS ========== -->
+            <div class="tab-content" id="tab-clients">
+                <div class="form-header">
+                    <div class="tab-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                        </svg>
+                        <h1>Client Database</h1>
+                    </div>
+                    <span class="header-badge" id="client-count-badge">0 Clients</span>
+                </div>
+
+                <div class="form-body">
+                    <!-- Add/Edit Client Form -->
+                    <div class="form-section">
+                        <h2 id="client-form-title">Add New Client</h2>
+                        <input type="hidden" id="edit_client_id" value="">
+                        <div class="client-form-grid">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Client Name / Company</label>
+                                <input type="text" id="client_name" placeholder="e.g. M/s. ABC Industries Pvt. Ltd.">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Address</label>
+                                <input type="text" id="client_address" placeholder="Full Address">
+                            </div>
+                            <div class="form-group">
+                                <label>GST No.</label>
+                                <input type="text" id="client_gst" placeholder="e.g. 27XXXXXX...">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact No.</label>
+                                <input type="text" id="client_contact" placeholder="Phone Number">
+                            </div>
+                            <div class="form-group">
+                                <label>Default Destination</label>
+                                <input type="text" id="client_destination" placeholder="e.g. Mumbai">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-accent btn-sm" onclick="saveClient()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Save Client
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="resetClientForm()">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Client List -->
+                    <div class="form-section" style="padding: 0; overflow: hidden;">
+                        <div class="client-table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>GST No.</th>
+                                        <th>Destination</th>
+                                        <th style="width: 80px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== TAB: HISTORY ========== -->
+            <div class="tab-content" id="tab-history">
+                <div class="form-header">
+                    <div class="tab-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <h1>Bill History</h1>
+                    </div>
+                    <span class="header-badge" id="history-count-badge">0 Bills</span>
+                </div>
+
+                <div class="form-body">
+                    <!-- Stats -->
+                    <div class="history-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-total-bills">0</div>
+                            <div class="stat-label">Total Bills</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-total-freight">₹0</div>
+                            <div class="stat-label">Total Freight</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="stat-total-balance">₹0</div>
+                            <div class="stat-label">Total Balance</div>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="search-bar">
+                        <input type="text" id="history-search"
+                            placeholder="Search by bilty no, consigner, consignee, date..." oninput="renderHistory()">
+                        <button class="btn btn-outline btn-sm"
+                            onclick="document.getElementById('history-search').value=''; renderHistory();">Clear</button>
+                    </div>
+
+                    <!-- History Table -->
+                    <div class="form-section" style="padding: 0; overflow: hidden;">
+                        <div class="client-table-wrapper" style="max-height: calc(100vh - 380px);">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bilty No.</th>
+                                        <th>Date</th>
+                                        <th>Consigner</th>
+                                        <th>Consignee</th>
+                                        <th>Total (₹)</th>
+                                        <th style="width: 100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== TAB: EXPORT / IMPORT ========== -->
+            <div class="tab-content" id="tab-export">
+                <div class="form-header">
+                    <div class="tab-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <h1>Export & Import</h1>
+                    </div>
+                </div>
+
+                <div class="form-body">
+                    <!-- Export -->
+                    <div class="export-card">
+                        <div class="icon-circle download">📥</div>
+                        <h3>Download Excel File</h3>
+                        <p>Export all your bilty records and client data to an Excel file (.xlsx) with separate sheets
+                            for Biltys and Clients.</p>
+                        <button class="btn btn-primary" onclick="exportToExcel()" style="flex-grow: 0;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            Download Manoj_Associates_Records.xlsx
+                        </button>
+                    </div>
+
+                    <!-- Import -->
+                    <div class="export-card">
+                        <div class="icon-circle upload">📤</div>
+                        <h3>Import Excel File</h3>
+                        <p>Load a previously exported Excel file to restore or merge your bilty records and client data.
+                            Useful when switching computers.</p>
+                        <input type="file" accept=".xlsx,.xls" id="import-file-input" class="hidden-input"
+                            onchange="importFromExcel(event)">
+                        <button class="btn btn-accent" onclick="document.getElementById('import-file-input').click()"
+                            style="flex-grow: 0;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            Choose Excel File to Import
+                        </button>
+                    </div>
+
+                    <!-- Export Dispatch Register (NEW) -->
+                    <div class="export-card"
+                        style="border: 2px solid rgba(99,102,241,0.2); background: linear-gradient(135deg, rgba(99,102,241,0.03), rgba(34,211,238,0.03));">
+                        <div class="icon-circle"
+                            style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(34,211,238,0.1)); color: var(--primary);">
+                            📊</div>
+                        <h3>Download Dispatch Register</h3>
+                        <p>Export the full dispatch register matching your manual Excel format with monthly sheets, all
+                            34 columns, headers, and formatting.</p>
+                        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-accent" onclick="exportDispatchRegister('current')"
+                                style="flex-grow: 0;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                                    <line x1="3" y1="9" x2="21" y2="9" />
+                                    <line x1="9" y1="3" x2="9" y2="21" />
+                                </svg>
+                                Current Month
+                            </button>
+                            <button class="btn btn-primary" onclick="exportDispatchRegister('all')"
+                                style="flex-grow: 0;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                Full Year
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Import Dispatch Register -->
+                    <div class="export-card import-dispatch-card">
+                        <div class="icon-circle">📋</div>
+                        <h3>Import Bilty Details Excel</h3>
+                        <p>Import your "BILTY DETAILS TOTAL" Excel file to load all dispatch records as bilty entries.
+                            Records will appear in History & Register tabs. Duplicates are skipped automatically.</p>
+                        <input type="file" accept=".xlsx,.xls" id="import-dispatch-input" class="hidden-input"
+                            onchange="importDispatchRegister(event)">
+                        <button class="btn btn-accent"
+                            onclick="document.getElementById('import-dispatch-input').click()" style="flex-grow: 0;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            Import Bilty Details Excel
+                        </button>
+                    </div>
+
+                    <!-- Data Info -->
+                    <div class="form-section">
+                        <h2>Local Data Summary</h2>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div
+                                style="text-align: center; padding: 12px; background: rgba(99,102,241,0.05); border-radius: 10px;">
+                                <div style="font-size: 1.3rem; font-weight: 800; color: var(--primary);"
+                                    id="export-bilty-count">0</div>
+                                <div
+                                    style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                                    Saved Biltys</div>
+                            </div>
+                            <div
+                                style="text-align: center; padding: 12px; background: rgba(16,185,129,0.05); border-radius: 10px;">
+                                <div style="font-size: 1.3rem; font-weight: 800; color: var(--success);"
+                                    id="export-client-count">0</div>
+                                <div
+                                    style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                                    Saved Clients</div>
+                            </div>
+                            <div
+                                style="text-align: center; padding: 12px; background: rgba(245,158,11,0.05); border-radius: 10px;">
+                                <div style="font-size: 1.3rem; font-weight: 800; color: var(--warning);"
+                                    id="export-autofill-count">0</div>
+                                <div
+                                    style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                                    Autofill Records</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="form-section" style="border-color: rgba(239,68,68,0.3);">
+                        <h2 style="color: var(--danger);">⚠️ Danger Zone</h2>
+                        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">Clear all locally
+                            stored data. This cannot be undone. Make sure to export your data first!</p>
+                        <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">Clear All Local Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== TAB: REGISTER (NEW) ========== -->
+            <div class="tab-content" id="tab-register">
+                <div class="form-header">
+                    <div class="tab-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="3" y1="9" x2="21" y2="9" />
+                            <line x1="3" y1="15" x2="21" y2="15" />
+                            <line x1="9" y1="3" x2="9" y2="21" />
+                        </svg>
+                        <h1>Dispatch Register</h1>
+                    </div>
+                    <span class="header-badge" id="register-count-badge">0 Entries</span>
+                </div>
+
+                <div class="form-body">
+                    <!-- Controls -->
+                    <div class="register-controls">
+                        <select id="register-month-filter" onchange="renderRegister()">
+                            <option value="all">All Months</option>
+                        </select>
+                        <input type="text" id="register-search" placeholder="Search truck, driver, transporter..."
+                            oninput="renderRegister()" style="flex-grow: 1;">
+                        <button class="btn btn-outline btn-sm"
+                            onclick="document.getElementById('register-search').value=''; renderRegister();">Clear</button>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div class="history-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="reg-stat-entries">0</div>
+                            <div class="stat-label">Entries</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="reg-stat-freight">₹0</div>
+                            <div class="stat-label">Total Freight</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="reg-stat-weight">0 MT</div>
+                            <div class="stat-label">Total Weight</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="reg-stat-balance">₹0</div>
+                            <div class="stat-label">Actual Balance</div>
+                        </div>
+                    </div>
+
+                    <!-- Register Table -->
+                    <div class="register-table-wrapper">
+                        <table class="register-table">
+                            <thead>
+                                <tr>
+                                    <th>Party DO</th>
+                                    <th>Date</th>
+                                    <th>LR No.</th>
+                                    <th>Vehicle No.</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Transporter</th>
+                                    <th>Driver</th>
+                                    <th>Material</th>
+                                    <th>Quality</th>
+                                    <th>Chall.Wt</th>
+                                    <th>Recd.Wt</th>
+                                    <th>Diff</th>
+                                    <th>Short.Qty</th>
+                                    <th>Unit</th>
+                                    <th>Party</th>
+                                    <th>Rate</th>
+                                    <th>Freight</th>
+                                    <th>Shortage</th>
+                                    <th>Bilty</th>
+                                    <th class="group-self">VRE</th>
+                                    <th class="group-self">Paid</th>
+                                    <th class="group-self">Fuel</th>
+                                    <th class="group-self">Diesel</th>
+                                    <th class="group-self">Bal(S)</th>
+                                    <th class="group-outside">Bilty/com</th>
+                                    <th class="group-outside">VRE Adv</th>
+                                    <th class="group-outside">Diesel</th>
+                                    <th class="group-outside">Bal(O)</th>
+                                    <th>Adv.Recd</th>
+                                    <th>Act.Bal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="register-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: LIVE PREVIEW PANEL -->
+        <div class="preview-panel">
+            <div id="bilty_sheet" class="bilty-sheet copy-white">
+                <div class="bilty-border-box">
+                    <!-- Top Header -->
+                    <div class="bilty-header">
+                        <div class="header-left-logo">🚚</div>
+                        <div class="header-center-title">
+                            <div class="company-name">MANOJ ASSOCIATES</div>
+                            <div class="company-subtitle">TRANSPORT CONTRACTOR & COMMISSION AGENT</div>
+                        </div>
+                        <div class="header-right-meta">
+                            <div>PAN No.: ABDFM4490N</div>
+                            <div style="margin-top: 3px;">Mob.: 9725560557, 9765351200</div>
+                            <div id="copy_tag" class="copy-tag">Consignor Copy</div>
+                        </div>
+                    </div>
+
+                    <!-- Offices -->
+                    <div class="office-info-bar">
+                        <div class="office-block">
+                            <strong>Reg. Off.:</strong> P-112, MIDC, Tarapur, Boisar, Tal. & Dist. Palghar - 401 506
+                            (Maharashtra).
+                        </div>
+                        <div class="office-block">
+                            <strong>Br. Off.:</strong> Magdalla Port, Surat - 394270 (Gujarat).<br>
+                            <strong>Email:</strong> manojassociates2013@gmail.com
+                        </div>
+                    </div>
+
+                    <!-- Meta Row -->
+                    <div class="meta-info-grid">
+                        <div class="meta-cell">
+                            <span class="meta-label">Bilty No.:</span>
+                            <span class="meta-value" id="view_bilty_no"></span>
+                        </div>
+                        <div class="meta-cell">
+                            <span class="meta-label">Date:</span>
+                            <span class="meta-value" id="view_date"></span>
+                        </div>
+                        <div class="meta-cell">
+                            <span class="meta-label">Booking Point:</span>
+                            <span class="meta-value" id="view_booking">Magdalla Port, Surat</span>
+                        </div>
+                    </div>
+
+                    <!-- Transport -->
+                    <div class="transport-grid">
+                        <div class="transport-cell">
+                            <strong>Truck No.:</strong> <span id="view_truck_no"></span>
+                        </div>
+                        <div class="transport-cell">
+                            <strong>From:</strong> <span id="view_from"></span>
+                        </div>
+                        <div class="transport-cell">
+                            <strong>To:</strong> <span id="view_to"></span>
+                        </div>
+                        <div class="transport-cell">
+                            <strong>Driver Name:</strong> <span id="view_driver"></span>
+                        </div>
+                        <div class="transport-cell" style="grid-column: span 2;">
+                            <strong>Driver Mob No.:</strong> <span id="view_driver_mob"></span>
+                        </div>
+                    </div>
+
+                    <!-- Consigner / Consignee -->
+                    <div class="party-section">
+                        <div class="party-box">
+                            <div class="party-title">Consigner M/s.</div>
+                            <div class="party-name" id="view_consigner"></div>
+                            <div class="party-gst">GST No:&nbsp;<span id="view_consigner_gst"
+                                    style="font-weight: normal;"></span></div>
+                        </div>
+                        <div class="party-box">
+                            <div class="party-title">Consignee M/s.</div>
+                            <div class="party-name" id="view_consignee"></div>
+                            <div class="party-gst">GST No:&nbsp;<span id="view_consignee_gst"
+                                    style="font-weight: normal;"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Goods Table -->
+                    <table class="goods-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">No. of Pkgs</th>
+                                <th style="width: 45%;">Description of Goods</th>
+                                <th style="width: 12%;">Weight</th>
+                                <th style="width: 10%;">Rate</th>
+                                <th style="width: 13%;">Total Freight</th>
+                                <th style="width: 10%;">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="data-row">
+                                <td class="col-center" id="view_no_1"></td>
+                                <td id="view_desc_1"></td>
+                                <td class="col-right" id="view_weight_1"></td>
+                                <td class="col-right" id="view_rate_1"></td>
+                                <td class="col-right" id="view_total_1"></td>
+                                <td id="view_rem_1"></td>
+                            </tr>
+                            <tr class="data-row">
+                                <td class="col-center" id="view_no_2"></td>
+                                <td id="view_desc_2"></td>
+                                <td class="col-right" id="view_weight_2"></td>
+                                <td class="col-right" id="view_rate_2"></td>
+                                <td class="col-right" id="view_total_2"></td>
+                                <td id="view_rem_2"></td>
+                            </tr>
+                            <tr class="data-row">
+                                <td class="col-center" id="view_no_3"></td>
+                                <td id="view_desc_3"></td>
+                                <td class="col-right" id="view_weight_3"></td>
+                                <td class="col-right" id="view_rate_3"></td>
+                                <td class="col-right" id="view_total_3"></td>
+                                <td id="view_rem_3"></td>
+                            </tr>
+                            <tr class="data-row">
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr class="data-row">
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr class="data-row">
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr class="data-row">
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Summary -->
+                    <div class="summary-section">
+                        <div class="terms-jurisdiction">
+                            <div>
+                                <ul class="terms-list">
+                                    <li>Shortage allowed 200 kg. only.</li>
+                                    <li>Service Tax will be paid by consignee.</li>
+                                    <li>Subject to Surat Jurisdiction only.</li>
+                                </ul>
+                            </div>
+                            <div style="font-size: 10px; font-weight: bold; margin-top: 10px;">
+                                GSTIN: 27ABDFM4490N1ZQ
+                            </div>
+                        </div>
+
+                        <div class="finance-block">
+                            <div class="finance-row">
+                                <div class="finance-label">To Pay Rs.</div>
+                                <div class="finance-value" id="view_topay">0.00</div>
+                            </div>
+                            <div class="finance-row">
+                                <div class="finance-label">Hamali</div>
+                                <div class="finance-value" id="view_hamali">0.00</div>
+                            </div>
+                            <div class="finance-row">
+                                <div class="finance-label">Total</div>
+                                <div class="finance-value" id="view_total">0.00</div>
+                            </div>
+                            <div class="finance-row">
+                                <div class="finance-label">Advance</div>
+                                <div class="finance-value" id="view_advance">0.00</div>
+                            </div>
+                            <div class="finance-row" style="border-bottom: none;">
+                                <div class="finance-label">Balance of Pay</div>
+                                <div class="finance-value" id="view_balance" style="font-size: 13px;">0.00</div>
+                            </div>
+
+                            <div class="signature-area">
+                                <div class="sig-company">For MANOJ ASSOCIATES</div>
+                                <div class="sig-line">Authorised Signatory</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden container for printing all 4 copies -->
+            <div class="print-copies-container" id="print-copies-container"></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast-notification">
+        <span id="toast-icon">✅</span>
+        <span id="toast-message">Saved successfully!</span>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-box">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="modal-confirm-btn" onclick="">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // DATA LAYER — localStorage persistence
+        // ================================================================
+
+        const STORAGE_KEYS = {
+            biltys: 'ma_biltys',
+            clients: 'ma_clients',
+            lastBiltyNum: 'ma_last_bilty_num',
+            autofillDb: 'ma_autofill_db'
+        };
+
+        function loadData(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        // ================================================================
+        // TAB NAVIGATION
+        // ================================================================
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-tab').forEach(el => el.classList.remove('active'));
+
+            // Show selected
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('tab-btn-' + tabName).classList.add('active');
+
+            // Toggle preview panel visibility (only show on bilty tab)
+            const previewPanel = document.querySelector('.preview-panel');
+            const formPanel = document.querySelector('.form-panel');
+            if (tabName === 'bilty') {
+                previewPanel.style.display = '';
+                formPanel.style.flex = '';
+            } else {
+                previewPanel.style.display = 'none';
+                formPanel.style.flex = '1';
+            }
+
+            // Refresh tab data
+            if (tabName === 'clients') renderClients();
+            if (tabName === 'history') renderHistory();
+            if (tabName === 'export') updateExportCounts();
+            if (tabName === 'register') renderRegister();
+        }
+
+        // ================================================================
+        // BILTY FORM — Auto Increment & Defaults
+        // ================================================================
+
+        function getNextBiltyNumber() {
+            const year = new Date().getFullYear();
+            const lastNum = parseInt(localStorage.getItem(STORAGE_KEYS.lastBiltyNum) || '0');
+            const next = lastNum + 1;
+            return `MA/${year}/${String(next).padStart(3, '0')}`;
+        }
+
+        function initBiltyForm() {
+            document.getElementById('input_bilty_no').value = getNextBiltyNumber();
+            document.getElementById('input_date').value = new Date().toISOString().split('T')[0];
+            updatePreview();
+            buildAutofillDataLists();
+        }
+
+        // ================================================================
+        // BILTY — Calculate & Preview (preserved logic)
+        // ================================================================
+
+        function calculateFreight(rowNum) {
+            const weight = parseFloat(document.getElementById(`row_weight_${rowNum}`).value) || 0;
+            const rate = parseFloat(document.getElementById(`row_rate_${rowNum}`).value) || 0;
+            if (weight > 0 && rate > 0) {
+                document.getElementById(`row_total_${rowNum}`).value = (weight * rate).toFixed(2);
+            }
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            const r1 = parseFloat(document.getElementById('row_total_1').value) || 0;
+            const r2 = parseFloat(document.getElementById('row_total_2').value) || 0;
+            const r3 = parseFloat(document.getElementById('row_total_3').value) || 0;
+
+            const toPay = parseFloat(document.getElementById('charge_topay').value) || 0;
+            const hamali = parseFloat(document.getElementById('charge_hamali').value) || 0;
+            const advance = parseFloat(document.getElementById('charge_advance').value) || 0;
+
+            const goodsTotal = r1 + r2 + r3;
+            const totalFreight = goodsTotal + toPay + hamali;
+            const balancePay = totalFreight - advance;
+
+            document.getElementById('charge_total').value = totalFreight.toFixed(2);
+            document.getElementById('charge_balance').value = balancePay.toFixed(2);
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            document.getElementById('view_bilty_no').innerText = document.getElementById('input_bilty_no').value;
+
+            const rawDate = document.getElementById('input_date').value;
+            if (rawDate) {
+                const parts = rawDate.split('-');
+                document.getElementById('view_date').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            } else {
+                document.getElementById('view_date').innerText = '';
+            }
+
+            document.getElementById('view_truck_no').innerText = document.getElementById('input_truck_no').value.toUpperCase();
+            document.getElementById('view_from').innerText = document.getElementById('input_from').value;
+            document.getElementById('view_to').innerText = document.getElementById('input_to').value;
+            document.getElementById('view_driver').innerText = document.getElementById('input_driver_name').value;
+            document.getElementById('view_driver_mob').innerText = document.getElementById('input_driver_mob').value;
+
+            document.getElementById('view_consigner').innerText = document.getElementById('input_consigner').value;
+            document.getElementById('view_consigner_gst').innerText = document.getElementById('input_consigner_gst').value.toUpperCase();
+            document.getElementById('view_consignee').innerText = document.getElementById('input_consignee').value;
+            document.getElementById('view_consignee_gst').innerText = document.getElementById('input_consignee_gst').value.toUpperCase();
+
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`view_no_${i}`).innerText = document.getElementById(`row_no_${i}`).value;
+                document.getElementById(`view_desc_${i}`).innerText = document.getElementById(`row_desc_${i}`).value;
+
+                const w = document.getElementById(`row_weight_${i}`).value;
+                document.getElementById(`view_weight_${i}`).innerText = w ? parseFloat(w).toFixed(2) : '';
+
+                const r = document.getElementById(`row_rate_${i}`).value;
+                document.getElementById(`view_rate_${i}`).innerText = r ? parseFloat(r).toFixed(2) : '';
+
+                const t = document.getElementById(`row_total_${i}`).value;
+                document.getElementById(`view_total_${i}`).innerText = t ? parseFloat(t).toFixed(2) : '';
+
+                document.getElementById(`view_rem_${i}`).innerText = document.getElementById(`row_rem_${i}`).value;
+            }
+
+            const toPayVal = parseFloat(document.getElementById('charge_topay').value) || 0;
+            const hamaliVal = parseFloat(document.getElementById('charge_hamali').value) || 0;
+            const totalVal = parseFloat(document.getElementById('charge_total').value) || 0;
+            const advVal = parseFloat(document.getElementById('charge_advance').value) || 0;
+            const balVal = parseFloat(document.getElementById('charge_balance').value) || 0;
+
+            document.getElementById('view_topay').innerText = toPayVal.toFixed(2);
+            document.getElementById('view_hamali').innerText = hamaliVal.toFixed(2);
+            document.getElementById('view_total').innerText = totalVal.toFixed(2);
+            document.getElementById('view_advance').innerText = advVal.toFixed(2);
+            document.getElementById('view_balance').innerText = balVal.toFixed(2);
+
+            const copyDropdown = document.getElementById('input_copy_type');
+            const selectedCopy = copyDropdown.value;
+            const selectedText = copyDropdown.options[copyDropdown.selectedIndex].text.split(' - ')[1] || copyDropdown.options[copyDropdown.selectedIndex].text;
+            document.getElementById('copy_tag').innerText = selectedText;
+            document.getElementById('bilty_sheet').className = 'bilty-sheet copy-' + selectedCopy;
+        }
+
+        // ================================================================
+        // PRINT ALL 4 COPIES
+        // ================================================================
+
+        function printAllCopies() {
+            const copies = [
+                { copyClass: 'copy-white', label: 'Consignor Copy' },
+                { copyClass: 'copy-pink', label: 'Consignee Copy' },
+                { copyClass: 'copy-yellow', label: 'Driver Copy' },
+                { copyClass: 'copy-green', label: 'Counter Copy' }
+            ];
+
+            const container = document.getElementById('print-copies-container');
+            container.innerHTML = '';
+
+            const originalSheet = document.getElementById('bilty_sheet');
+
+            copies.forEach(copy => {
+                const clone = originalSheet.cloneNode(true);
+                clone.removeAttribute('id');
+                clone.className = 'bilty-sheet ' + copy.copyClass;
+                // Update the copy tag text
+                const copyTag = clone.querySelector('.copy-tag');
+                if (copyTag) copyTag.innerText = copy.label;
+                container.appendChild(clone);
+            });
+
+            // Small delay to let DOM render, then print
+            setTimeout(() => {
+                window.print();
+                // Clean up after printing
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 500);
+            }, 100);
+        }
+
+        // ================================================================
+        // SAVE BILTY
+        // ================================================================
+
+        function collectBiltyData() {
+            return {
+                id: generateId(),
+                biltyNo: document.getElementById('input_bilty_no').value,
+                date: document.getElementById('input_date').value,
+                truckNo: document.getElementById('input_truck_no').value,
+                driverName: document.getElementById('input_driver_name').value,
+                driverMob: document.getElementById('input_driver_mob').value,
+                from: document.getElementById('input_from').value,
+                to: document.getElementById('input_to').value,
+                consigner: document.getElementById('input_consigner').value,
+                consignerGst: document.getElementById('input_consigner_gst').value,
+                consignee: document.getElementById('input_consignee').value,
+                consigneeGst: document.getElementById('input_consignee_gst').value,
+                // Dispatch fields
+                partyDo: document.getElementById('input_party_do').value,
+                transporter: document.getElementById('input_transporter').value,
+                material: document.getElementById('input_material').value,
+                quality: document.getElementById('input_quality').value,
+                partyShort: document.getElementById('input_party_short').value,
+                unloadUnit: document.getElementById('input_unload_unit').value,
+                challanWt: document.getElementById('input_challan_wt').value,
+                recdWt: document.getElementById('input_recd_wt').value,
+                wtDiff: document.getElementById('input_wt_diff').value,
+                shortQty: document.getElementById('input_short_qty').value,
+                vehicleType: document.getElementById('input_vehicle_type').value,
+                dispatchRate: document.getElementById('input_dispatch_rate').value,
+                dispatchFreight: document.getElementById('input_dispatch_freight').value,
+                shortageAmt: document.getElementById('input_shortage_amt').value,
+                biltyCharge: document.getElementById('input_bilty_charge').value,
+                vre: document.getElementById('input_vre').value,
+                paid: document.getElementById('input_paid').value,
+                fuelLtr: document.getElementById('input_fuel_ltr').value,
+                pump: document.getElementById('input_pump').value,
+                fuelRate: document.getElementById('input_fuel_rate').value,
+                dieselCost: document.getElementById('input_diesel_cost').value,
+                selfBalance: document.getElementById('input_self_balance').value,
+                biltyCom: document.getElementById('input_bilty_com').value,
+                vreAdv: document.getElementById('input_vre_adv').value,
+                outFuelLtr: document.getElementById('input_out_fuel_ltr').value,
+                outDiesel: document.getElementById('input_out_diesel').value,
+                outBalance: document.getElementById('input_out_balance').value,
+                advRecd: document.getElementById('input_adv_recd').value,
+                actBalance: document.getElementById('input_act_balance').value,
+                goods: [1, 2, 3].map(i => ({
+                    no: document.getElementById(`row_no_${i}`).value,
+                    desc: document.getElementById(`row_desc_${i}`).value,
+                    weight: document.getElementById(`row_weight_${i}`).value,
+                    rate: document.getElementById(`row_rate_${i}`).value,
+                    total: document.getElementById(`row_total_${i}`).value,
+                    remarks: document.getElementById(`row_rem_${i}`).value
+                })),
+                toPay: document.getElementById('charge_topay').value,
+                hamali: document.getElementById('charge_hamali').value,
+                totalFreight: document.getElementById('charge_total').value,
+                advance: document.getElementById('charge_advance').value,
+                balance: document.getElementById('charge_balance').value,
+                copyType: document.getElementById('input_copy_type').value,
+                savedAt: new Date().toISOString()
+            };
+        }
+
+        function saveBilty() {
+            const data = collectBiltyData();
+
+            if (!data.biltyNo || !data.date) {
+                showToast('Please fill Bilty No. and Date', 'error');
+                return;
+            }
+
+            const biltys = loadData(STORAGE_KEYS.biltys);
+
+            // Check for duplicate bilty number — update if exists
+            const existingIdx = biltys.findIndex(b => b.biltyNo === data.biltyNo);
+            if (existingIdx >= 0) {
+                data.id = biltys[existingIdx].id;
+                biltys[existingIdx] = data;
+            } else {
+                biltys.push(data);
+            }
+
+            saveData(STORAGE_KEYS.biltys, biltys);
+
+            // Update auto-increment counter
+            const match = data.biltyNo.match(/\/(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1]);
+                const lastNum = parseInt(localStorage.getItem(STORAGE_KEYS.lastBiltyNum) || '0');
+                if (num > lastNum) {
+                    localStorage.setItem(STORAGE_KEYS.lastBiltyNum, String(num));
+                }
+            }
+
+            showToast('Bilty saved successfully!', 'success');
+            buildAutofillDataLists();
+        }
+
+        function loadBiltyIntoForm(biltyId) {
+            const biltys = loadData(STORAGE_KEYS.biltys);
+            const b = biltys.find(x => x.id === biltyId);
+            if (!b) return;
+
+            document.getElementById('input_bilty_no').value = b.biltyNo || '';
+            document.getElementById('input_date').value = b.date || '';
+            document.getElementById('input_truck_no').value = b.truckNo || '';
+            document.getElementById('input_driver_name').value = b.driverName || '';
+            document.getElementById('input_driver_mob').value = b.driverMob || '';
+            document.getElementById('input_from').value = b.from || '';
+            document.getElementById('input_to').value = b.to || '';
+            document.getElementById('input_consigner').value = b.consigner || '';
+            document.getElementById('input_consigner_gst').value = b.consignerGst || '';
+            document.getElementById('input_consignee').value = b.consignee || '';
+            document.getElementById('input_consignee_gst').value = b.consigneeGst || '';
+
+            // Dispatch fields
+            document.getElementById('input_party_do').value = b.partyDo || '';
+            document.getElementById('input_transporter').value = b.transporter || '';
+            document.getElementById('input_material').value = b.material || 'Ncoal';
+            document.getElementById('input_quality').value = b.quality || '4200';
+            document.getElementById('input_party_short').value = b.partyShort || '';
+            document.getElementById('input_unload_unit').value = b.unloadUnit || '';
+            document.getElementById('input_challan_wt').value = b.challanWt || '';
+            document.getElementById('input_recd_wt').value = b.recdWt || '';
+            document.getElementById('input_wt_diff').value = b.wtDiff || '';
+            document.getElementById('input_short_qty').value = b.shortQty || '';
+            document.getElementById('input_dispatch_rate').value = b.dispatchRate || '';
+            document.getElementById('input_dispatch_freight').value = b.dispatchFreight || '';
+            document.getElementById('input_shortage_amt').value = b.shortageAmt || '';
+            document.getElementById('input_bilty_charge').value = b.biltyCharge || '';
+            document.getElementById('input_vre').value = b.vre || '';
+            document.getElementById('input_paid').value = b.paid || '';
+            document.getElementById('input_fuel_ltr').value = b.fuelLtr || '';
+            document.getElementById('input_pump').value = b.pump || '';
+            document.getElementById('input_fuel_rate').value = b.fuelRate || '';
+            document.getElementById('input_diesel_cost').value = b.dieselCost || '';
+            document.getElementById('input_self_balance').value = b.selfBalance || '';
+            document.getElementById('input_bilty_com').value = b.biltyCom || '';
+            document.getElementById('input_vre_adv').value = b.vreAdv || '';
+            document.getElementById('input_out_fuel_ltr').value = b.outFuelLtr || '';
+            document.getElementById('input_out_diesel').value = b.outDiesel || '';
+            document.getElementById('input_out_balance').value = b.outBalance || '';
+            document.getElementById('input_adv_recd').value = b.advRecd || '';
+            document.getElementById('input_act_balance').value = b.actBalance || '';
+
+            // Set vehicle type
+            const vType = b.vehicleType || 'self';
+            document.getElementById('input_vehicle_type').value = vType;
+            const toggleBtns = document.querySelectorAll('.vehicle-type-toggle button');
+            toggleBtns.forEach(btn => btn.classList.remove('active'));
+            toggleBtns[vType === 'self' ? 0 : 1].classList.add('active');
+            document.getElementById('section_self').classList.toggle('visible', vType === 'self');
+            document.getElementById('section_outside').classList.toggle('visible', vType === 'outside');
+
+            if (b.goods) {
+                b.goods.forEach((g, idx) => {
+                    const i = idx + 1;
+                    document.getElementById(`row_no_${i}`).value = g.no || '';
+                    document.getElementById(`row_desc_${i}`).value = g.desc || '';
+                    document.getElementById(`row_weight_${i}`).value = g.weight || '';
+                    document.getElementById(`row_rate_${i}`).value = g.rate || '';
+                    document.getElementById(`row_total_${i}`).value = g.total || '';
+                    document.getElementById(`row_rem_${i}`).value = g.remarks || '';
+                });
+            }
+
+            document.getElementById('charge_topay').value = b.toPay || 0;
+            document.getElementById('charge_hamali').value = b.hamali || 0;
+            document.getElementById('charge_total').value = b.totalFreight || 0;
+            document.getElementById('charge_advance').value = b.advance || 0;
+            document.getElementById('charge_balance').value = b.balance || 0;
+            document.getElementById('input_copy_type').value = b.copyType || 'white';
+
+            updatePreview();
+            switchTab('bilty');
+            showToast('Bilty loaded into form', 'info');
+        }
+
+        function deleteBilty(biltyId) {
+            showConfirm('Delete Bilty', 'Are you sure you want to delete this bilty record? This cannot be undone.', () => {
+                let biltys = loadData(STORAGE_KEYS.biltys);
+                biltys = biltys.filter(b => b.id !== biltyId);
+                saveData(STORAGE_KEYS.biltys, biltys);
+                renderHistory();
+                showToast('Bilty deleted', 'success');
+            });
+        }
+
+        function clearForm() {
+            const fields = ['input_truck_no', 'input_driver_name', 'input_driver_mob', 'input_to',
+                'input_consigner', 'input_consigner_gst', 'input_consignee', 'input_consignee_gst',
+                'input_party_do', 'input_transporter', 'input_party_short', 'input_unload_unit',
+                'input_challan_wt', 'input_recd_wt', 'input_wt_diff', 'input_short_qty',
+                'input_dispatch_rate', 'input_dispatch_freight', 'input_shortage_amt', 'input_bilty_charge',
+                'input_vre', 'input_paid', 'input_fuel_ltr', 'input_pump', 'input_fuel_rate',
+                'input_diesel_cost', 'input_self_balance', 'input_bilty_com', 'input_vre_adv',
+                'input_out_fuel_ltr', 'input_out_diesel', 'input_out_balance', 'input_adv_recd', 'input_act_balance'];
+            fields.forEach(id => document.getElementById(id).value = '');
+
+            document.getElementById('input_from').value = 'Hazira';
+            document.getElementById('input_material').value = 'Ncoal';
+            document.getElementById('input_quality').value = '4200';
+
+            for (let i = 1; i <= 3; i++) {
+                ['no', 'desc', 'weight', 'rate', 'total', 'rem'].forEach(f => {
+                    document.getElementById(`row_${f}_${i}`).value = '';
+                });
+            }
+
+            ['charge_topay', 'charge_hamali', 'charge_total', 'charge_advance', 'charge_balance'].forEach(id => {
+                document.getElementById(id).value = '0';
+            });
+
+            document.getElementById('select_consigner').value = '';
+            document.getElementById('select_consignee').value = '';
+            document.getElementById('input_vehicle_type').value = 'self';
+            setVehicleType('self', document.querySelector('.vehicle-type-toggle button'));
+
+            // Set next bilty number
+            document.getElementById('input_bilty_no').value = getNextBiltyNumber();
+            document.getElementById('input_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('input_copy_type').value = 'white';
+
+            updatePreview();
+        }
+
+        // ================================================================
+        // CLIENT MANAGEMENT
+        // ================================================================
+
+        function saveClient() {
+            const name = document.getElementById('client_name').value.trim();
+            const address = document.getElementById('client_address').value.trim();
+            const gst = document.getElementById('client_gst').value.trim();
+            const contact = document.getElementById('client_contact').value.trim();
+            const destination = document.getElementById('client_destination').value.trim();
+
+            if (!name) {
+                showToast('Client name is required', 'error');
+                return;
+            }
+
+            const clients = loadData(STORAGE_KEYS.clients);
+            const editId = document.getElementById('edit_client_id').value;
+
+            if (editId) {
+                // Update existing
+                const idx = clients.findIndex(c => c.id === editId);
+                if (idx >= 0) {
+                    clients[idx] = { ...clients[idx], name, address, gst, contact, destination };
+                }
+            } else {
+                // Add new
+                clients.push({ id: generateId(), name, address, gst, contact, destination });
+            }
+
+            saveData(STORAGE_KEYS.clients, clients);
+            resetClientForm();
+            renderClients();
+            refreshClientDropdowns();
+            showToast(editId ? 'Client updated!' : 'Client added!', 'success');
+        }
+
+        function editClient(clientId) {
+            const clients = loadData(STORAGE_KEYS.clients);
+            const c = clients.find(x => x.id === clientId);
+            if (!c) return;
+
+            document.getElementById('edit_client_id').value = c.id;
+            document.getElementById('client_name').value = c.name || '';
+            document.getElementById('client_address').value = c.address || '';
+            document.getElementById('client_gst').value = c.gst || '';
+            document.getElementById('client_contact').value = c.contact || '';
+            document.getElementById('client_destination').value = c.destination || '';
+            document.getElementById('client-form-title').textContent = 'Edit Client';
+
+            // Scroll to top of form
+            document.querySelector('#tab-clients .form-body').scrollTop = 0;
+        }
+
+        function deleteClient(clientId) {
+            showConfirm('Delete Client', 'Are you sure you want to delete this client?', () => {
+                let clients = loadData(STORAGE_KEYS.clients);
+                clients = clients.filter(c => c.id !== clientId);
+                saveData(STORAGE_KEYS.clients, clients);
+                renderClients();
+                refreshClientDropdowns();
+                showToast('Client deleted', 'success');
+            });
+        }
+
+        function resetClientForm() {
+            document.getElementById('edit_client_id').value = '';
+            document.getElementById('client_name').value = '';
+            document.getElementById('client_address').value = '';
+            document.getElementById('client_gst').value = '';
+            document.getElementById('client_contact').value = '';
+            document.getElementById('client_destination').value = '';
+            document.getElementById('client-form-title').textContent = 'Add New Client';
+        }
+
+        function renderClients() {
+            const clients = loadData(STORAGE_KEYS.clients);
+            const tbody = document.getElementById('clients-table-body');
+
+            document.getElementById('client-count-badge').textContent = clients.length + ' Client' + (clients.length !== 1 ? 's' : '');
+
+            if (clients.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">👥</div><h3>No clients yet</h3><p>Add your first client using the form above</p></div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = clients.map(c => `
+                <tr>
+                    <td><strong>${escHtml(c.name)}</strong><br><small style="color: var(--text-muted);">${escHtml(c.address || '')}</small></td>
+                    <td style="font-family: monospace; font-size: 0.78rem;">${escHtml(c.gst || '-')}</td>
+                    <td>${escHtml(c.destination || '-')}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="icon-btn edit" onclick="editClient('${c.id}')" title="Edit">✏️</button>
+                            <button class="icon-btn delete" onclick="deleteClient('${c.id}')" title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ================================================================
+        // CLIENT DROPDOWNS ON BILTY FORM
+        // ================================================================
+
+        function refreshClientDropdowns() {
+            const clients = loadData(STORAGE_KEYS.clients);
+            const options = '<option value="">-- Type manually or select client --</option>' +
+                clients.map(c => `<option value="${c.id}">${escHtml(c.name)} ${c.gst ? '(' + c.gst + ')' : ''}</option>`).join('');
+
+            document.getElementById('select_consigner').innerHTML = options;
+            document.getElementById('select_consignee').innerHTML = options;
+        }
+
+        function fillConsigner() {
+            const clientId = document.getElementById('select_consigner').value;
+            if (!clientId) return;
+            const clients = loadData(STORAGE_KEYS.clients);
+            const c = clients.find(x => x.id === clientId);
+            if (!c) return;
+
+            document.getElementById('input_consigner').value = c.name + (c.address ? ', ' + c.address : '');
+            document.getElementById('input_consigner_gst').value = c.gst || '';
+            updatePreview();
+        }
+
+        function fillConsignee() {
+            const clientId = document.getElementById('select_consignee').value;
+            if (!clientId) return;
+            const clients = loadData(STORAGE_KEYS.clients);
+            const c = clients.find(x => x.id === clientId);
+            if (!c) return;
+
+            document.getElementById('input_consignee').value = c.name + (c.address ? ', ' + c.address : '');
+            document.getElementById('input_consignee_gst').value = c.gst || '';
+            if (c.destination) {
+                document.getElementById('input_to').value = c.destination;
+            }
+            updatePreview();
+        }
+
+        // ================================================================
+        // HISTORY TAB
+        // ================================================================
+
+        function renderHistory() {
+            const biltys = loadData(STORAGE_KEYS.biltys);
+            const search = (document.getElementById('history-search').value || '').toLowerCase();
+            const tbody = document.getElementById('history-table-body');
+
+            // Filter
+            const filtered = biltys.filter(b => {
+                if (!search) return true;
+                return (b.biltyNo || '').toLowerCase().includes(search) ||
+                    (b.consigner || '').toLowerCase().includes(search) ||
+                    (b.consignee || '').toLowerCase().includes(search) ||
+                    (b.date || '').includes(search) ||
+                    (b.truckNo || '').toLowerCase().includes(search);
+            });
+
+            // Sort newest first
+            filtered.sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
+
+            // Stats
+            document.getElementById('stat-total-bills').textContent = biltys.length;
+            const totalFreight = biltys.reduce((sum, b) => sum + (parseFloat(b.totalFreight) || 0), 0);
+            const totalBalance = biltys.reduce((sum, b) => sum + (parseFloat(b.balance) || 0), 0);
+            document.getElementById('stat-total-freight').textContent = '₹' + totalFreight.toLocaleString('en-IN');
+            document.getElementById('stat-total-balance').textContent = '₹' + totalBalance.toLocaleString('en-IN');
+            document.getElementById('history-count-badge').textContent = biltys.length + ' Bill' + (biltys.length !== 1 ? 's' : '');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><h3>${search ? 'No results found' : 'No bills saved yet'}</h3><p>${search ? 'Try a different search term' : 'Create and save your first bilty'}</p></div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(b => {
+                const dateStr = b.date ? b.date.split('-').reverse().join('/') : '-';
+                return `
+                <tr>
+                    <td><strong>${escHtml(b.biltyNo || '-')}</strong></td>
+                    <td>${dateStr}</td>
+                    <td>${escHtml(truncate(b.consigner, 25))}</td>
+                    <td>${escHtml(truncate(b.consignee, 25))}</td>
+                    <td style="text-align: right; font-weight: 600;">₹${parseFloat(b.totalFreight || 0).toLocaleString('en-IN')}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="icon-btn view" onclick="loadBiltyIntoForm('${b.id}')" title="View / Reprint">👁️</button>
+                            <button class="icon-btn delete" onclick="deleteBilty('${b.id}')" title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        // ================================================================
+        // EXCEL EXPORT
+        // ================================================================
+
+        function exportToExcel() {
+            const biltys = loadData(STORAGE_KEYS.biltys);
+            const clients = loadData(STORAGE_KEYS.clients);
+
+            if (biltys.length === 0 && clients.length === 0) {
+                showToast('No data to export!', 'error');
+                return;
+            }
+
+            // Flatten biltys for Excel
+            const biltyRows = biltys.map(b => ({
+                'Bilty No.': b.biltyNo,
+                'Date': b.date,
+                'Truck No.': b.truckNo,
+                'Driver Name': b.driverName,
+                'Driver Mobile': b.driverMob,
+                'From': b.from,
+                'To': b.to,
+                'Consigner': b.consigner,
+                'Consigner GST': b.consignerGst,
+                'Consignee': b.consignee,
+                'Consignee GST': b.consigneeGst,
+                'Item 1 - No.': b.goods?.[0]?.no || '',
+                'Item 1 - Description': b.goods?.[0]?.desc || '',
+                'Item 1 - Weight': b.goods?.[0]?.weight || '',
+                'Item 1 - Rate': b.goods?.[0]?.rate || '',
+                'Item 1 - Total': b.goods?.[0]?.total || '',
+                'Item 1 - Remarks': b.goods?.[0]?.remarks || '',
+                'Item 2 - No.': b.goods?.[1]?.no || '',
+                'Item 2 - Description': b.goods?.[1]?.desc || '',
+                'Item 2 - Weight': b.goods?.[1]?.weight || '',
+                'Item 2 - Rate': b.goods?.[1]?.rate || '',
+                'Item 2 - Total': b.goods?.[1]?.total || '',
+                'Item 2 - Remarks': b.goods?.[1]?.remarks || '',
+                'Item 3 - No.': b.goods?.[2]?.no || '',
+                'Item 3 - Description': b.goods?.[2]?.desc || '',
+                'Item 3 - Weight': b.goods?.[2]?.weight || '',
+                'Item 3 - Rate': b.goods?.[2]?.rate || '',
+                'Item 3 - Total': b.goods?.[2]?.total || '',
+                'Item 3 - Remarks': b.goods?.[2]?.remarks || '',
+                'To Pay': b.toPay,
+                'Hamali': b.hamali,
+                'Total Freight': b.totalFreight,
+                'Advance': b.advance,
+                'Balance': b.balance,
+                'Copy Type': b.copyType,
+                'Saved At': b.savedAt
+            }));
+
+            const clientRows = clients.map(c => ({
+                'Client Name': c.name,
+                'Address': c.address,
+                'GST No.': c.gst,
+                'Contact No.': c.contact,
+                'Default Destination': c.destination
+            }));
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+
+            if (biltyRows.length > 0) {
+                const ws1 = XLSX.utils.json_to_sheet(biltyRows);
+                // Set column widths
+                ws1['!cols'] = Object.keys(biltyRows[0]).map(k => ({ wch: Math.max(k.length, 15) }));
+                XLSX.utils.book_append_sheet(wb, ws1, 'Biltys');
+            }
+
+            if (clientRows.length > 0) {
+                const ws2 = XLSX.utils.json_to_sheet(clientRows);
+                ws2['!cols'] = Object.keys(clientRows[0]).map(k => ({ wch: Math.max(k.length, 20) }));
+                XLSX.utils.book_append_sheet(wb, ws2, 'Clients');
+            }
+
+            XLSX.writeFile(wb, 'Manoj_Associates_Records.xlsx');
+            showToast(`Exported ${biltyRows.length} biltys & ${clientRows.length} clients`, 'success');
+        }
+
+        // ================================================================
+        // EXCEL IMPORT
+        // ================================================================
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+
+                    let importedBiltys = 0;
+                    let importedClients = 0;
+
+                    // Import Biltys sheet
+                    if (wb.SheetNames.includes('Biltys')) {
+                        const rows = XLSX.utils.sheet_to_json(wb.Sheets['Biltys']);
+                        const biltys = loadData(STORAGE_KEYS.biltys);
+
+                        rows.forEach(row => {
+                            const bilty = {
+                                id: generateId(),
+                                biltyNo: row['Bilty No.'] || '',
+                                date: row['Date'] || '',
+                                truckNo: row['Truck No.'] || '',
+                                driverName: row['Driver Name'] || '',
+                                driverMob: row['Driver Mobile'] || '',
+                                from: row['From'] || '',
+                                to: row['To'] || '',
+                                consigner: row['Consigner'] || '',
+                                consignerGst: row['Consigner GST'] || '',
+                                consignee: row['Consignee'] || '',
+                                consigneeGst: row['Consignee GST'] || '',
+                                goods: [
+                                    { no: row['Item 1 - No.'] || '', desc: row['Item 1 - Description'] || '', weight: row['Item 1 - Weight'] || '', rate: row['Item 1 - Rate'] || '', total: row['Item 1 - Total'] || '', remarks: row['Item 1 - Remarks'] || '' },
+                                    { no: row['Item 2 - No.'] || '', desc: row['Item 2 - Description'] || '', weight: row['Item 2 - Weight'] || '', rate: row['Item 2 - Rate'] || '', total: row['Item 2 - Total'] || '', remarks: row['Item 2 - Remarks'] || '' },
+                                    { no: row['Item 3 - No.'] || '', desc: row['Item 3 - Description'] || '', weight: row['Item 3 - Weight'] || '', rate: row['Item 3 - Rate'] || '', total: row['Item 3 - Total'] || '', remarks: row['Item 3 - Remarks'] || '' }
+                                ],
+                                toPay: row['To Pay'] || '0',
+                                hamali: row['Hamali'] || '0',
+                                totalFreight: row['Total Freight'] || '0',
+                                advance: row['Advance'] || '0',
+                                balance: row['Balance'] || '0',
+                                copyType: row['Copy Type'] || 'white',
+                                savedAt: row['Saved At'] || new Date().toISOString()
+                            };
+
+                            // Skip duplicates by bilty number
+                            if (!biltys.some(b => b.biltyNo === bilty.biltyNo)) {
+                                biltys.push(bilty);
+                                importedBiltys++;
+                            }
+                        });
+
+                        saveData(STORAGE_KEYS.biltys, biltys);
+
+                        // Update auto-increment counter
+                        const maxNum = biltys.reduce((max, b) => {
+                            const match = (b.biltyNo || '').match(/\/(\d+)$/);
+                            return match ? Math.max(max, parseInt(match[1])) : max;
+                        }, 0);
+                        localStorage.setItem(STORAGE_KEYS.lastBiltyNum, String(maxNum));
+                    }
+
+                    // Import Clients sheet
+                    if (wb.SheetNames.includes('Clients')) {
+                        const rows = XLSX.utils.sheet_to_json(wb.Sheets['Clients']);
+                        const clients = loadData(STORAGE_KEYS.clients);
+
+                        rows.forEach(row => {
+                            const client = {
+                                id: generateId(),
+                                name: row['Client Name'] || '',
+                                address: row['Address'] || '',
+                                gst: row['GST No.'] || '',
+                                contact: row['Contact No.'] || '',
+                                destination: row['Default Destination'] || ''
+                            };
+
+                            // Skip duplicates by name+GST
+                            if (!clients.some(c => c.name === client.name && c.gst === client.gst)) {
+                                clients.push(client);
+                                importedClients++;
+                            }
+                        });
+
+                        saveData(STORAGE_KEYS.clients, clients);
+                    }
+
+                    refreshClientDropdowns();
+                    showToast(`Imported ${importedBiltys} biltys & ${importedClients} clients`, 'success');
+                    updateExportCounts();
+
+                    // Reset the file input
+                    event.target.value = '';
+
+                } catch (err) {
+                    showToast('Error reading file: ' + err.message, 'error');
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ================================================================
+        // EXPORT TAB - DATA COUNTS
+        // ================================================================
+
+        function updateExportCounts() {
+            document.getElementById('export-bilty-count').textContent = loadData(STORAGE_KEYS.biltys).length;
+            document.getElementById('export-client-count').textContent = loadData(STORAGE_KEYS.clients).length;
+            const afDb = loadData(STORAGE_KEYS.autofillDb);
+            document.getElementById('export-autofill-count').textContent = afDb.length;
+        }
+
+        // ================================================================
+        // CLEAR ALL DATA
+        // ================================================================
+
+        function confirmClearAll() {
+            showConfirm('Clear All Data', 'This will permanently delete ALL saved biltys and client records from this browser. This CANNOT be undone. Are you sure?', () => {
+                localStorage.removeItem(STORAGE_KEYS.biltys);
+                localStorage.removeItem(STORAGE_KEYS.clients);
+                localStorage.removeItem(STORAGE_KEYS.lastBiltyNum);
+                localStorage.removeItem(STORAGE_KEYS.autofillDb);
+                refreshClientDropdowns();
+                updateExportCounts();
+                clearForm();
+                buildAutofillDataLists();
+                renderHistory();
+                renderRegister();
+                showToast('All data cleared', 'success');
+            });
+        }
+
+        // ================================================================
+        // TOAST & MODAL HELPERS
+        // ================================================================
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast-notification');
+            const icon = document.getElementById('toast-icon');
+            const msg = document.getElementById('toast-message');
+
+            icon.textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            msg.textContent = message;
+            toast.className = 'toast ' + type;
+
+            // Show
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            // Auto-hide
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        let _modalCallback = null;
+
+        function showConfirm(title, message, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            _modalCallback = onConfirm;
+            document.getElementById('modal-confirm-btn').onclick = () => {
+                const cb = _modalCallback;
+                closeModal();
+                if (cb) cb();
+            };
+            document.getElementById('confirm-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('confirm-modal').classList.remove('show');
+            _modalCallback = null;
+        }
+
+        // ================================================================
+        // UTILITY HELPERS
+        // ================================================================
+
+        function escHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function truncate(str, maxLen) {
+            if (!str) return '';
+            return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+        }
+
+        // ================================================================
+        // COLLAPSIBLE SECTIONS
+        // ================================================================
+
+        function toggleSection(headerEl) {
+            const section = headerEl.closest('.form-section.collapsible');
+            section.classList.toggle('collapsed');
+        }
+
+        // ================================================================
+        // VEHICLE TYPE TOGGLE
+        // ================================================================
+
+        function setVehicleType(type, btnEl) {
+            document.getElementById('input_vehicle_type').value = type;
+            document.querySelectorAll('.vehicle-type-toggle button').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            document.getElementById('section_self').classList.toggle('visible', type === 'self');
+            document.getElementById('section_outside').classList.toggle('visible', type === 'outside');
+            calcDispatchBalance();
+        }
+
+        // ================================================================
+        // DISPATCH CALCULATIONS
+        // ================================================================
+
+        function calcWeightDiff() {
+            const cw = parseFloat(document.getElementById('input_challan_wt').value) || 0;
+            const rw = parseFloat(document.getElementById('input_recd_wt').value) || 0;
+            document.getElementById('input_wt_diff').value = cw > 0 ? (cw - rw).toFixed(2) : '';
+        }
+
+        function calcDispatchFreight() {
+            const rw = parseFloat(document.getElementById('input_recd_wt').value) || parseFloat(document.getElementById('input_challan_wt').value) || 0;
+            const rate = parseFloat(document.getElementById('input_dispatch_rate').value) || 0;
+            if (rw > 0 && rate > 0) {
+                document.getElementById('input_dispatch_freight').value = Math.round(rw * rate);
+            } else {
+                document.getElementById('input_dispatch_freight').value = '';
+            }
+            calcDispatchBalance();
+        }
+
+        function calcDieselCost() {
+            const ltr = parseFloat(document.getElementById('input_fuel_ltr').value) || 0;
+            const rate = parseFloat(document.getElementById('input_fuel_rate').value) || 0;
+            document.getElementById('input_diesel_cost').value = ltr > 0 && rate > 0 ? Math.round(ltr * rate) : '';
+            calcDispatchBalance();
+        }
+
+        function calcOutDieselCost() {
+            // For outside, diesel might be entered directly
+            calcDispatchBalance();
+        }
+
+        function calcDispatchBalance() {
+            const freight = parseFloat(document.getElementById('input_dispatch_freight').value) || 0;
+            const shortage = parseFloat(document.getElementById('input_shortage_amt').value) || 0;
+            const biltyCharge = parseFloat(document.getElementById('input_bilty_charge').value) || 0;
+            const advRecd = parseFloat(document.getElementById('input_adv_recd').value) || 0;
+            const vType = document.getElementById('input_vehicle_type').value;
+
+            if (vType === 'self') {
+                const vre = parseFloat(document.getElementById('input_vre').value) || 0;
+                const paid = parseFloat(document.getElementById('input_paid').value) || 0;
+                const diesel = parseFloat(document.getElementById('input_diesel_cost').value) || 0;
+                const selfBal = freight - shortage - biltyCharge - vre - paid - diesel;
+                document.getElementById('input_self_balance').value = selfBal;
+                document.getElementById('input_act_balance').value = selfBal;
+            } else {
+                const biltyCom = parseFloat(document.getElementById('input_bilty_com').value) || 0;
+                const vreAdv = parseFloat(document.getElementById('input_vre_adv').value) || 0;
+                const outDiesel = parseFloat(document.getElementById('input_out_diesel').value) || 0;
+                const outBal = freight - biltyCom - vreAdv - outDiesel;
+                document.getElementById('input_out_balance').value = outBal;
+                document.getElementById('input_act_balance').value = outBal;
+            }
+        }
+
+        // ================================================================
+        // AUTOFILL SYSTEM
+        // ================================================================
+
+        function buildAutofillDataLists() {
+            const biltys = loadData(STORAGE_KEYS.biltys);
+            const afDb = loadData(STORAGE_KEYS.autofillDb);
+            const allRecords = [...biltys, ...afDb];
+
+            const sets = {
+                trucks: new Set(), drivers: new Set(), fromStations: new Set(),
+                toStations: new Set(), transporters: new Set(), partyDos: new Set(),
+                partyNames: new Set(), materials: new Set(), unloadUnits: new Set()
+            };
+
+            allRecords.forEach(r => {
+                if (r.truckNo) sets.trucks.add(r.truckNo.toUpperCase());
+                if (r.driverName) sets.drivers.add(r.driverName);
+                if (r.from) sets.fromStations.add(r.from);
+                if (r.to) sets.toStations.add(r.to);
+                if (r.transporter) sets.transporters.add(r.transporter);
+                if (r.partyDo) sets.partyDos.add(r.partyDo);
+                if (r.partyShort) sets.partyNames.add(r.partyShort);
+                if (r.material) sets.materials.add(r.material);
+                if (r.unloadUnit) sets.unloadUnits.add(r.unloadUnit);
+            });
+
+            const fillDatalist = (id, values) => {
+                const dl = document.getElementById(id);
+                dl.innerHTML = [...values].sort().map(v => `<option value="${escHtml(v)}">`).join('');
+            };
+
+            fillDatalist('dl_truck_nos', sets.trucks);
+            fillDatalist('dl_driver_names', sets.drivers);
+            fillDatalist('dl_from_stations', sets.fromStations);
+            fillDatalist('dl_to_stations', sets.toStations);
+            fillDatalist('dl_transporters', sets.transporters);
+            fillDatalist('dl_party_dos', sets.partyDos);
+            fillDatalist('dl_party_names', sets.partyNames);
+            fillDatalist('dl_materials', sets.materials);
+            fillDatalist('dl_unload_units', sets.unloadUnits);
+        }
+
+        // Smart autofill: truck → driver
+        function onTruckChange() {
+            const truckNo = document.getElementById('input_truck_no').value.toUpperCase().trim();
+            if (!truckNo) return;
+            const allRecords = [...loadData(STORAGE_KEYS.biltys), ...loadData(STORAGE_KEYS.autofillDb)];
+            const match = allRecords.filter(r => (r.truckNo || '').toUpperCase() === truckNo);
+            if (match.length > 0) {
+                const lastMatch = match[match.length - 1];
+                if (lastMatch.driverName && !document.getElementById('input_driver_name').value) {
+                    document.getElementById('input_driver_name').value = lastMatch.driverName;
+                }
+            }
+        }
+
+        // Smart autofill: route → rate
+        function onRouteChange() {
+            const from = document.getElementById('input_from').value.trim();
+            const to = document.getElementById('input_to').value.trim();
+            if (!from || !to) return;
+            const allRecords = [...loadData(STORAGE_KEYS.biltys), ...loadData(STORAGE_KEYS.autofillDb)];
+            const match = allRecords.filter(r => (r.from || '').toLowerCase() === from.toLowerCase() && (r.to || '').toLowerCase() === to.toLowerCase());
+            if (match.length > 0) {
+                const lastMatch = match[match.length - 1];
+                if (lastMatch.dispatchRate && !document.getElementById('input_dispatch_rate').value) {
+                    document.getElementById('input_dispatch_rate').value = lastMatch.dispatchRate;
+                }
+            }
+        }
+
+        // Smart autofill: transporter → party short name
+        function onTransporterChange() {
+            const transporter = document.getElementById('input_transporter').value.trim();
+            if (!transporter) return;
+            const allRecords = [...loadData(STORAGE_KEYS.biltys), ...loadData(STORAGE_KEYS.autofillDb)];
+            const match = allRecords.filter(r => (r.transporter || '').toLowerCase() === transporter.toLowerCase());
+            if (match.length > 0) {
+                const lastMatch = match[match.length - 1];
+                if (lastMatch.partyShort && !document.getElementById('input_party_short').value) {
+                    document.getElementById('input_party_short').value = lastMatch.partyShort;
+                }
+            }
+        }
+
+        // ================================================================
+        // IMPORT DISPATCH REGISTER (from manual Excel)
+        // ================================================================
+
+        function importDispatchRegister(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+                    let imported = 0;
+                    let skipped = 0;
+                    const existingBiltys = loadData(STORAGE_KEYS.biltys);
+                    const afDb = loadData(STORAGE_KEYS.autofillDb);
+
+                    // Build set of existing bilty numbers for duplicate detection
+                    const existingNos = new Set();
+                    existingBiltys.forEach(b => {
+                        if (b.biltyNo) existingNos.add(String(b.biltyNo).trim());
+                    });
+
+                    wb.SheetNames.forEach(sheetName => {
+                        if (sheetName === 'Mapping' || sheetName === 'Dumfer') return;
+                        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: '' });
+                        // Find header row (has 'LR No.' or 'Vehicles No.')
+                        let headerIdx = -1;
+                        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+                            const row = rows[i].map(v => String(v).toLowerCase());
+                            if (row.some(v => v.includes('lr no') || v.includes('vehicles no'))) {
+                                headerIdx = i;
+                                break;
+                            }
+                        }
+                        if (headerIdx < 0) return;
+
+                        // Parse data rows
+                        for (let i = headerIdx + 1; i < rows.length; i++) {
+                            const r = rows[i];
+                            if (!r[3] || !r[1]) continue; // Skip rows without vehicle number or date
+
+                            const biltyNo = String(r[2] || '').trim();
+
+                            // Skip duplicates
+                            if (biltyNo && existingNos.has(biltyNo)) {
+                                skipped++;
+                                continue;
+                            }
+
+                            // Parse date (Excel serial number)
+                            const dateVal = r[1];
+                            let dateStr = '';
+                            if (typeof dateVal === 'number' && dateVal > 40000) {
+                                const d = new Date((dateVal - 25569) * 86400000);
+                                dateStr = d.toISOString().split('T')[0];
+                            } else if (dateVal) {
+                                dateStr = String(dateVal);
+                            }
+
+                            const record = {
+                                id: generateId(),
+                                biltyNo: biltyNo,
+                                date: dateStr,
+                                truckNo: String(r[3] || '').toUpperCase().trim(),
+                                driverName: String(r[7] || '').trim(),
+                                driverMob: '',
+                                from: String(r[4] || '').trim(),
+                                to: String(r[5] || '').trim(),
+                                consigner: '',
+                                consignerGst: '',
+                                consignee: '',
+                                consigneeGst: '',
+                                partyDo: String(r[0] || '').trim(),
+                                transporter: String(r[6] || '').trim(),
+                                material: String(r[8] || '').trim(),
+                                quality: String(r[9] || ''),
+                                partyShort: String(r[15] || '').trim(),
+                                unloadUnit: String(r[14] || '').trim(),
+                                challanWt: String(r[10] || ''),
+                                recdWt: String(r[11] || ''),
+                                wtDiff: String(r[12] || ''),
+                                shortQty: String(r[13] || ''),
+                                vehicleType: 'self',
+                                dispatchRate: String(r[16] || ''),
+                                dispatchFreight: String(r[17] || ''),
+                                shortageAmt: String(r[18] || ''),
+                                biltyCharge: String(r[19] || ''),
+                                vre: String(r[20] || ''),
+                                paid: String(r[21] || ''),
+                                fuelLtr: String(r[22] || ''),
+                                pump: String(r[23] || ''),
+                                fuelRate: String(r[24] || ''),
+                                dieselCost: String(r[25] || ''),
+                                selfBalance: String(r[26] || ''),
+                                biltyCom: String(r[27] || ''),
+                                vreAdv: String(r[28] || ''),
+                                outFuelLtr: String(r[29] || ''),
+                                outDiesel: String(r[30] || ''),
+                                outBalance: String(r[31] || ''),
+                                advRecd: String(r[32] || ''),
+                                actBalance: String(r[33] || ''),
+                                goods: [{ no: '', desc: '', weight: '', rate: '', total: '', rem: '' }],
+                                toPay: '0', hamali: '0', totalFreight: '0', advance: '0', balancePay: '0',
+                                _source: 'excel-import',
+                                _sheet: sheetName
+                            };
+
+                            existingBiltys.push(record);
+                            afDb.push(record);
+                            if (biltyNo) existingNos.add(biltyNo);
+                            imported++;
+                        }
+                    });
+
+                    saveData(STORAGE_KEYS.biltys, existingBiltys);
+                    saveData(STORAGE_KEYS.autofillDb, afDb);
+                    buildAutofillDataLists();
+                    renderHistory();
+                    renderRegister();
+                    updateExportCounts();
+
+                    let msg = `Imported ${imported} bilty records`;
+                    if (skipped > 0) msg += ` (${skipped} duplicates skipped)`;
+                    showToast(msg, 'success');
+                    event.target.value = '';
+                } catch (err) {
+                    showToast('Error reading file: ' + err.message, 'error');
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ================================================================
+        // EXPORT DISPATCH REGISTER
+        // ================================================================
+
+        function exportDispatchRegister(mode) {
+            const biltys = loadData(STORAGE_KEYS.biltys);
+            if (biltys.length === 0) {
+                showToast('No bilty records to export!', 'error');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            const yearSuffix = String(currentYear).slice(2);
+
+            // Group biltys by month
+            const byMonth = {};
+            biltys.forEach(b => {
+                if (!b.date) return;
+                const d = new Date(b.date);
+                const key = `${d.getMonth()}-${d.getFullYear()}`;
+                if (!byMonth[key]) byMonth[key] = [];
+                byMonth[key].push(b);
+            });
+
+            const monthsToExport = mode === 'current'
+                ? [`${currentMonth}-${currentYear}`]
+                : Object.keys(byMonth).sort();
+
+            monthsToExport.forEach(key => {
+                const records = byMonth[key];
+                if (!records || records.length === 0) return;
+                const [m, y] = key.split('-');
+                const sheetName = `${monthNames[parseInt(m)]}-${String(y).slice(2)}`;
+
+                // Build header rows
+                const headerRows = [
+                    ['', '', 'MANOJ ASSOCIATES'],
+                    ['', '', `DISPATCH REGISTER FOR THE MONTH OF ${monthNames[parseInt(m)].toUpperCase()} - ${y}`],
+                    ['Party DO', 'Date', 'LR No.', 'Vehicles No.', 'Load From', 'Unload to', 'Transporter', 'DRIVER', 'Material', 'Quality', 'Chall.Wt.', 'Recd.Wt.', 'Difference', 'Short.Qty', 'Unload Unit', 'Party', 'Rate', 'Freight', 'Shortage', 'Bilty', 'VRE', 'Paid', 'Fuel Ltr', 'Pump', 'Rate', 'Diesel', 'Balance', 'Bilty/com', 'VRE Adv', 'Ltr', 'Diesel', 'Balance', 'Adv.Recd.', 'Act.Balance']
+                ];
+
+                const dataRows = records.map(b => [
+                    b.partyDo || '', b.date || '', b.biltyNo || '', b.truckNo || '',
+                    b.from || '', b.to || '', b.transporter || '', b.driverName || '',
+                    b.material || '', b.quality || '',
+                    b.challanWt || '', b.recdWt || '', b.wtDiff || '', b.shortQty || '',
+                    b.unloadUnit || '', b.partyShort || '', b.dispatchRate || '',
+                    b.dispatchFreight || '', b.shortageAmt || '', b.biltyCharge || '',
+                    b.vre || '', b.paid || '', b.fuelLtr || '', b.pump || '',
+                    b.fuelRate || '', b.dieselCost || '', b.selfBalance || '',
+                    b.biltyCom || '', b.vreAdv || '', b.outFuelLtr || '',
+                    b.outDiesel || '', b.outBalance || '', b.advRecd || '', b.actBalance || ''
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows]);
+
+                // Set column widths
+                ws['!cols'] = [
+                    { wch: 14 }, { wch: 12 }, { wch: 8 }, { wch: 14 }, { wch: 12 }, { wch: 12 },
+                    { wch: 25 }, { wch: 14 }, { wch: 8 }, { wch: 7 }, { wch: 9 }, { wch: 9 },
+                    { wch: 10 }, { wch: 9 }, { wch: 10 }, { wch: 10 }, { wch: 6 }, { wch: 9 },
+                    { wch: 9 }, { wch: 7 }, { wch: 7 }, { wch: 7 }, { wch: 8 }, { wch: 8 },
+                    { wch: 6 }, { wch: 8 }, { wch: 10 }, { wch: 9 }, { wch: 8 }, { wch: 6 },
+                    { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 10 }
+                ];
+
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            });
+
+            const fileName = mode === 'current'
+                ? `Dispatch_Register_${monthNames[currentMonth]}_${currentYear}.xlsx`
+                : `BILTY_DETAILS_TOTAL_${currentYear}.xlsx`;
+
+            XLSX.writeFile(wb, fileName);
+            showToast(`Dispatch register exported: ${fileName}`, 'success');
+        }
+
+        // ================================================================
+        // REGISTER TAB
+        // ================================================================
+
+        function renderRegister() {
+            const biltys = loadData(STORAGE_KEYS.biltys);
+            const search = (document.getElementById('register-search').value || '').toLowerCase();
+            const monthFilter = document.getElementById('register-month-filter').value;
+
+            // Populate month filter options
+            const monthSelect = document.getElementById('register-month-filter');
+            const months = new Set();
+            biltys.forEach(b => {
+                if (b.date) {
+                    const d = new Date(b.date);
+                    months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+                }
+            });
+            const sortedMonths = [...months].sort().reverse();
+            const currentVal = monthSelect.value;
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            monthSelect.innerHTML = '<option value="all">All Months</option>' +
+                sortedMonths.map(m => {
+                    const [y, mo] = m.split('-');
+                    return `<option value="${m}">${monthNames[parseInt(mo) - 1]} ${y}</option>`;
+                }).join('');
+            monthSelect.value = currentVal || 'all';
+
+            // Filter
+            const filtered = biltys.filter(b => {
+                if (monthFilter !== 'all' && b.date) {
+                    const d = new Date(b.date);
+                    const bMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    if (bMonth !== monthFilter) return false;
+                }
+                if (search) {
+                    return [b.truckNo, b.driverName, b.transporter, b.partyDo, b.biltyNo, b.from, b.to, b.partyShort]
+                        .some(v => (v || '').toLowerCase().includes(search));
+                }
+                return true;
+            });
+
+            // Sort by date
+            filtered.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+            // Stats
+            const totalFreight = filtered.reduce((s, b) => s + (parseFloat(b.dispatchFreight) || 0), 0);
+            const totalWeight = filtered.reduce((s, b) => s + (parseFloat(b.challanWt) || 0), 0);
+            const totalBalance = filtered.reduce((s, b) => s + (parseFloat(b.actBalance) || 0), 0);
+            document.getElementById('reg-stat-entries').textContent = filtered.length;
+            document.getElementById('reg-stat-freight').textContent = '₹' + totalFreight.toLocaleString('en-IN');
+            document.getElementById('reg-stat-weight').textContent = totalWeight.toFixed(1) + ' MT';
+            document.getElementById('reg-stat-balance').textContent = '₹' + totalBalance.toLocaleString('en-IN');
+            document.getElementById('register-count-badge').textContent = filtered.length + ' Entries';
+
+            const tbody = document.getElementById('register-table-body');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="31" style="text-align: center; padding: 40px; color: var(--text-muted);">No dispatch records found</td></tr>`;
+                return;
+            }
+
+            const n = v => { const x = parseFloat(v); return isNaN(x) ? '' : x.toLocaleString('en-IN'); };
+            const formatDate = d => d ? d.split('-').reverse().join('/') : '';
+
+            tbody.innerHTML = filtered.map(b => `<tr>
+                <td>${escHtml(b.partyDo || '')}</td>
+                <td>${formatDate(b.date)}</td>
+                <td><strong>${escHtml(b.biltyNo || '')}</strong></td>
+                <td>${escHtml(b.truckNo || '')}</td>
+                <td>${escHtml(b.from || '')}</td>
+                <td>${escHtml(b.to || '')}</td>
+                <td>${escHtml(truncate(b.transporter || '', 20))}</td>
+                <td>${escHtml(b.driverName || '')}</td>
+                <td>${escHtml(b.material || '')}</td>
+                <td class="num">${b.quality || ''}</td>
+                <td class="num">${n(b.challanWt)}</td>
+                <td class="num">${n(b.recdWt)}</td>
+                <td class="num">${n(b.wtDiff)}</td>
+                <td class="num">${n(b.shortQty)}</td>
+                <td>${escHtml(b.unloadUnit || '')}</td>
+                <td>${escHtml(b.partyShort || '')}</td>
+                <td class="num">${n(b.dispatchRate)}</td>
+                <td class="num">${n(b.dispatchFreight)}</td>
+                <td class="num">${n(b.shortageAmt)}</td>
+                <td class="num">${n(b.biltyCharge)}</td>
+                <td class="num">${n(b.vre)}</td>
+                <td class="num">${n(b.paid)}</td>
+                <td class="num">${n(b.fuelLtr)}</td>
+                <td class="num">${n(b.dieselCost)}</td>
+                <td class="num">${n(b.selfBalance)}</td>
+                <td class="num">${n(b.biltyCom)}</td>
+                <td class="num">${n(b.vreAdv)}</td>
+                <td class="num">${n(b.outDiesel)}</td>
+                <td class="num">${n(b.outBalance)}</td>
+                <td class="num">${n(b.advRecd)}</td>
+                <td class="num" style="font-weight:700;">${n(b.actBalance)}</td>
+            </tr>`).join('');
+        }
+
+        // ================================================================
+        // INITIALIZATION
+        // ================================================================
+
+        (function init() {
+            initBiltyForm();
+            refreshClientDropdowns();
+            renderClients();
+            renderHistory();
+            updateExportCounts();
+            buildAutofillDataLists();
+        })();
+    </script>
+</body>
+
+</html>
