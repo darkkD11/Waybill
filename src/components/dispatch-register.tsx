@@ -11,7 +11,7 @@ export const DispatchRegister: React.FC<DispatchRegisterProps> = ({ refreshTrigg
   const [entries, setEntries] = useState<Bilty[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('all');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   // Month lists found dynamically
   const [uniqueMonths, setUniqueMonths] = useState<string[]>([]);
@@ -49,8 +49,8 @@ export const DispatchRegister: React.FC<DispatchRegisterProps> = ({ refreshTrigg
         }
       });
       setUniqueMonths(Array.from(months).sort().reverse());
-    } catch (err: any) {
-      console.error('Error fetching register:', err.message);
+    } catch (err: unknown) {
+      console.error('Error fetching register:', err instanceof Error ? err.message : err);
     } finally {
       setLoading(false);
     }

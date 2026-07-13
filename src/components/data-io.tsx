@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
-import { Bilty, Client } from '../types/supabase';
+import { Bilty } from '../types/supabase';
 import { Download, Upload, Trash2, ShieldAlert, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -38,7 +38,7 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
   };
 
   // Helper to convert Excel Date to YYYY-MM-DD
-  const parseExcelDate = (val: any): string => {
+  const parseExcelDate = (val: string | number | null | undefined): string => {
     if (!val) return '';
     if (typeof val === 'number') {
       // Excel serial number
@@ -58,7 +58,7 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
   };
 
   // Helper to parse numbers safely
-  const parseNum = (val: any): number => {
+  const parseNum = (val: string | number | null | undefined): number => {
     if (val === null || val === undefined) return 0;
     const num = parseFloat(String(val).replace(/,/g, '').trim());
     return isNaN(num) ? 0 : num;
@@ -79,7 +79,6 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
 
         const wb = XLSX.read(buffer, { type: 'array' });
         let importedCount = 0;
-        let skippedCount = 0;
         
         // Loop through all sheets
         for (const sheetName of wb.SheetNames) {
@@ -87,7 +86,7 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
           if (['Mapping', 'Dumfer', 'Instructions', 'Readme'].includes(sheetName)) continue;
 
           const sheet = wb.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: '' });
+          const rows = XLSX.utils.sheet_to_json<(string | number | null | undefined)[]>(sheet, { header: 1, defval: '' });
 
           if (rows.length < 3) continue;
 
@@ -103,7 +102,7 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
 
           if (headerIdx < 0) continue; // No header row found in sheet
 
-          const recordsToInsert: any[] = [];
+          const recordsToInsert: Record<string, unknown>[] = [];
 
           // Process rows starting from headerIdx + 1
           for (let i = headerIdx + 1; i < rows.length; i++) {
@@ -199,8 +198,8 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
         alert(`Ledger Import completed. Successfully processed/updated ${importedCount} records.`);
         fetchCounts();
         onImportSuccess();
-      } catch (err: any) {
-        alert('Failed to parse Excel file: ' + err.message);
+      } catch (err: unknown) {
+        alert('Failed to parse Excel file: ' + (err instanceof Error ? err.message : String(err)));
       } finally {
         setLoading(false);
         event.target.value = ''; // Reset input
@@ -214,7 +213,7 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
   const handleExport = async (scope: 'current' | 'all') => {
     setLoading(true);
     try {
-      let query = supabase.from('biltys').select('*').order('date', { ascending: true });
+      const query = supabase.from('biltys').select('*').order('date', { ascending: true });
       
       const { data, error } = await query;
       if (error) throw error;
@@ -356,8 +355,8 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
         : `Manoj_Associates_Bilty_Details_Total.xlsx`;
         
       XLSX.writeFile(wb, fileName);
-    } catch (err: any) {
-      alert('Failed to export register: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to export register: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -386,8 +385,8 @@ export const DataIO: React.FC<DataIOProps> = ({ onImportSuccess }) => {
       alert('Database has been completely reset. All waybills and client profiles are cleared.');
       fetchCounts();
       onImportSuccess();
-    } catch (err: any) {
-      alert('Error clearing data: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error clearing data: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }

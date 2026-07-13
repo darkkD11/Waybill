@@ -6,15 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "start:prod": "next build && next start",
+    "lint": "eslint .",
+    "promote": "powershell -ExecutionPolicy Bypass -File ./scripts/promote.ps1"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
+    "lucide-react": "^0.470.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "xlsx": "^0.18.5",
-    "lucide-react": "^0.470.0"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
@@ -25,6 +27,7 @@
     "eslint-config-next": "^15.1.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.63.0"
   }
 }

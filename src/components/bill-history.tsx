@@ -16,7 +16,7 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
 }) => {
   const [biltys, setBiltys] = useState<Bilty[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   // Sorting
   const [sortField, setSortField] = useState<keyof Bilty>('date');
@@ -47,8 +47,8 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
       const balanceSum = biltysList.reduce((sum, b) => sum + (b.balance || 0), 0);
       setTotalFreight(freightSum);
       setPendingBalance(balanceSum);
-    } catch (err: any) {
-      alert('Error fetching bill history: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error fetching bill history: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -66,8 +66,8 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
       if (error) throw error;
       alert('Bilty record deleted.');
       fetchBiltys();
-    } catch (err: any) {
-      alert('Error deleting bilty: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error deleting bilty: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -84,8 +84,8 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
 
   const getSortedBiltys = () => {
     return [...biltys].sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
+      const aVal = a[sortField];
+      const bVal = b[sortField];
 
       // Handle nulls
       if (aVal === null || aVal === undefined) return sortOrder === 'asc' ? -1 : 1;

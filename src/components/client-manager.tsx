@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { Client } from '../types/supabase';
-import { Search, Plus, Edit2, Trash2, Check, X, Users } from 'lucide-react';
+import { Search, Edit2, Trash2, Users } from 'lucide-react';
 
 export const ClientManager: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -30,8 +30,8 @@ export const ClientManager: React.FC = () => {
       
       if (error) throw error;
       setClients(data || []);
-    } catch (err: any) {
-      alert('Error fetching clients: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error fetching clients: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -71,8 +71,8 @@ export const ClientManager: React.FC = () => {
 
       resetForm();
       fetchClients();
-    } catch (err: any) {
-      alert('Error saving client: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error saving client: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -99,8 +99,8 @@ export const ClientManager: React.FC = () => {
       if (error) throw error;
       alert('Client deleted successfully!');
       fetchClients();
-    } catch (err: any) {
-      alert('Error deleting client: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error deleting client: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
