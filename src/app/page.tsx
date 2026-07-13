@@ -8,7 +8,7 @@ import { ClientManager } from '../components/client-manager';
 import { BillHistory } from '../components/bill-history';
 import { DispatchRegister } from '../components/dispatch-register';
 import { DataIO } from '../components/data-io';
-import { FileText, Users, Receipt, TableProperties, FileSpreadsheet, Truck } from 'lucide-react';
+import { Users, Receipt, TableProperties, FileSpreadsheet, Truck } from 'lucide-react';
 
 type TabType = 'bilty' | 'clients' | 'history' | 'register' | 'export';
 

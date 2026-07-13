@@ -1,13 +1,16 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals.js";
-import nextTs from "eslint-config-next/typescript.js";
+import nextPlugin from "@next/eslint-plugin-next";
+import tseslint from "typescript-eslint";
 
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
+  // Next.js core web vitals rules via the plugin's flat config
+  nextPlugin.flatConfig.coreWebVitals,
+
+  // TypeScript recommended rules
+  ...tseslint.configs.recommended,
+
+  // Override default ignores
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
@@ -16,4 +19,3 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
 import { Bilty, Client, GoodsItem } from '../types/supabase';
 import {
@@ -10,7 +10,7 @@ import {
   calculateDieselCost,
   calculateDispatchBalances,
 } from '../utils/calculations';
-import { FileText, Truck, MapPin, Building2, Package, CircleDollarSign, Plus, RotateCcw, Printer, Save } from 'lucide-react';
+import { FileText, Building2, Package, CircleDollarSign, RotateCcw, Printer, Save } from 'lucide-react';
 
 interface BiltyFormProps {
   editBiltyId: string | null;
@@ -195,8 +195,8 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
         .order('name', { ascending: true });
       if (error) throw error;
       setClients(data || []);
-    } catch (err: any) {
-      console.error('Error fetching clients:', err.message);
+    } catch (err: unknown) {
+      console.error('Error fetching clients:', err instanceof Error ? err.message : err);
     }
   };
 
@@ -336,8 +336,8 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
         // Summaries
         setAdvRecd(b.adv_recd ? String(b.adv_recd) : '');
       }
-    } catch (err: any) {
-      alert('Error loading bilty: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error loading bilty: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -559,8 +559,8 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
       }
 
       onSaveSuccess();
-    } catch (err: any) {
-      alert('Error saving record: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error saving record: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -612,8 +612,8 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
 
       if (!editBiltyId) resetForm();
       onSaveSuccess();
-    } catch (err: any) {
-      alert('Error printing/saving: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error printing/saving: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }

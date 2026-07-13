@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import EnvBanner from "@/components/EnvBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,8 +12,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-import EnvBanner from "@/components/EnvBanner";
 
 export const metadata: Metadata = {
   title: "Manoj Associates - Bilty Generator & Dispatch Register",
