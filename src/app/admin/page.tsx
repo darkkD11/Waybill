@@ -1,9 +1,9 @@
 import React from 'react';
-import DashboardClient from './DashboardClient';
+import AdminClient from './AdminClient';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 
-export default async function Page() {
+export default async function AdminPage() {
   const supabase = await createClient();
 
   const {
@@ -14,8 +14,10 @@ export default async function Page() {
     return redirect('/login');
   }
 
-  // Extract role from user_metadata
-  const isAdmin = user.user_metadata?.role === 'admin';
+  // Only allow admins
+  if (user.user_metadata?.role !== 'admin') {
+    return redirect('/');
+  }
 
-  return <DashboardClient isAdmin={isAdmin} userEmail={user.email || ''} />;
+  return <AdminClient />;
 }
