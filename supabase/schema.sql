@@ -97,7 +97,9 @@ CREATE INDEX IF NOT EXISTS idx_biltys_consignee ON biltys (consignee_id);
 
 -- Triggers for auto-updating updated_at timestamp
 CREATE OR REPLACE FUNCTION update_modified_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = ''
+AS $$
 BEGIN
     NEW.updated_at = timezone('utc'::text, now());
     RETURN NEW;
@@ -113,3 +115,20 @@ CREATE TRIGGER update_biltys_modtime
     BEFORE UPDATE ON biltys
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_column();
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE biltys ENABLE ROW LEVEL SECURITY;
+
+-- Create policies to allow authenticated users to perform all operations
+CREATE POLICY "Enable all operations for authenticated users" ON clients
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "Enable all operations for authenticated users" ON biltys
+    FOR ALL
+    TO authenticated
+    USING (true)
+    WITH CHECK (true);
