@@ -121,7 +121,7 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
     if (!editBiltyId) {
       autoIncrementBiltyNumber();
     }
-  }, [editBiltyId, date]);
+  }, [editBiltyId, date, toLocation]);
 
   // Load Bilty details for editing
   useEffect(() => {
@@ -239,31 +239,43 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
 
   const autoIncrementBiltyNumber = async () => {
     try {
-      const yr = new Date(date).getFullYear();
-      const prefix = `MA/${yr}/`;
-      
       const { data, error } = await supabase
         .from('biltys')
         .select('bilty_no')
-        .like('bilty_no', `${prefix}%`)
-        .order('bilty_no', { ascending: false })
-        .limit(1);
+        .eq('to_location', toLocation);
 
       if (error) throw error;
 
+      let nextInt = 1;
+      
+      const loc = toLocation.toLowerCase().trim();
+      if (loc === 'tarapur') nextInt = 200;
+      else if (loc === 'sarigam') nextInt = 3000;
+      else if (loc === 'saykha') nextInt = 5000;
+
       if (data && data.length > 0) {
-        const lastNo = data[0].bilty_no;
-        const numPart = lastNo.replace(prefix, '');
-        const nextInt = parseInt(numPart) + 1;
-        setBiltyNo(`${prefix}${String(nextInt).padStart(3, '0')}`);
-      } else {
-        setBiltyNo(`${prefix}001`);
+        // Extract integers and find max
+        const nums = data.map(d => {
+          // Get trailing digits (e.g., from '3001' or 'MA/2026/020')
+          const match = d.bilty_no.match(/(\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        });
+        const maxNum = Math.max(...nums);
+        if (maxNum >= nextInt) {
+          nextInt = maxNum + 1;
+        }
       }
+
+      setBiltyNo(String(nextInt));
     } catch (err) {
       console.error('Error auto-incrementing bilty no:', err);
       // Fallback
-      const yr = new Date(date).getFullYear();
-      setBiltyNo(`MA/${yr}/001`);
+      let nextInt = 1;
+      const loc = toLocation.toLowerCase().trim();
+      if (loc === 'tarapur') nextInt = 200;
+      else if (loc === 'sarigam') nextInt = 3000;
+      else if (loc === 'saykha') nextInt = 5000;
+      setBiltyNo(String(nextInt));
     }
   };
 
@@ -691,9 +703,8 @@ export const BiltyForm: React.FC<BiltyFormProps> = ({
               <input
                 type="text"
                 value={biltyNo}
-                onChange={e => setBiltyNo(e.target.value)}
-                required
-                className="w-full text-sm font-semibold border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                readOnly
+                className="w-full text-sm font-semibold border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none"
               />
             </div>
             <div>
