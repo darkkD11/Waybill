@@ -12,6 +12,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import EnvBanner from "@/components/EnvBanner";
+
 export const metadata: Metadata = {
   title: "Manoj Associates - Bilty Generator & Dispatch Register",
   description: "Bilty (Waybill/Consignment Note) Generator and Dispatch Register administrative panel for Manoj Associates.",
@@ -27,7 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+        {children}
+        <EnvBanner />
+      </body>
     </html>
   );
 }
